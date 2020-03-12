@@ -310,13 +310,16 @@ var Authentication = {
     a.attr("data-toggle", "dropdown");
     a.attr("href", "#");
 
-    a.append('<i class="material-icons iconmobile">assignment </i><span id="maps-sup"><img id="login" alt="Login" src="img/usuario.jpg" title="Autentique"></span>');
+    a.append('<i class="material-icons iconmobile">assignment </i><span id="maps-sup"><img id="login"  style="width:28px; height:28px; border-radius:50%" alt="Login" src="img/usuario.jpg" title="Autentique"></span>');
     a.appendTo(li);
+
+      
 
     let dropDownDiv = $('<div/>',
       {
         id: "navbarDropdownLoginPopup",
-        class: "dropdown-menu submenu"
+        class: "dropdown-menu submenu",
+        style: "right: 0px; left: auto;"
       });
     dropDownDiv.attr("aria-labelledby", "navbarDropdownLoginLink");
     dropDownDiv.appendTo(li);
@@ -327,7 +330,7 @@ var Authentication = {
       $('<a/>',
         {
           class: 'dropdown-item',
-          html: '<b class="loggedUser">' + info.name + ' / ' + info.institution + '</b>'
+          html: '<b style="color:#6c757d;">' + info.name + ' / ' + info.institution + '</b>'
         }).appendTo(dropDownDiv);
 
       let a = $('<a/>',
@@ -337,6 +340,7 @@ var Authentication = {
         });
       a.attr("href", "javascript:Authentication.logout();");
       a.appendTo(dropDownDiv);
+     
 
     }
     else {
