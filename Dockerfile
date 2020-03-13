@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY package.json .
 ENV NPM_CONFIG_LOGLEVEL warn
-RUN npm install -g yarn
+RUN npm install  -g yarn --force
 RUN yarn install --production
 
 COPY . .
@@ -18,10 +18,10 @@ RUN pm2 install pm2-logrotate
 
 ENV PORT 9000
 EXPOSE 9000
-ENV FILES_PATH /data/files
+ENV FILES_PATH /data/oauth-api
 VOLUME ["${FILES_PATH}","/logs"]
 
 # Show current folder structure in logs
 RUN ls -al -R
 
-CMD ["pm2-runtime", "--env", "production", "start", "pm2.json", "--web"]
+CMD ["pm2-runtime", "--env", "production", "start", "pm2.json"]
