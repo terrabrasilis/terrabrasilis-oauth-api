@@ -29,7 +29,7 @@ $ docker images # look and find the hash you want
 $ docker tag local-image:tagname reponame:tagname
 $ docker push reponame:tagname
 # EXAMPLE:
-$ docker tag bfe06c2b5dea terrabrasilis/terrabrasilis-oauth-api:v0.1.0
+$ docker tag bfe06c2b5dea terrabrasilis/terrabrasilis-oauth-api:v1.0.0
 $ docker push terrabrasilis/terrabrasilis-oauth-api
 ```
 
