@@ -16,6 +16,13 @@ var Authentication = {
   
   showAuthenticationModal() {
 
+    //Verify if authentication modal already exists
+    if($('#authentication-div').length>0)
+    {
+      $('#authentication-div').remove();
+    }
+    
+
     //Authentication div
     var authenticationDiv = $('<div>', {
       id: 'authentication-div',
