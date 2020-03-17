@@ -21,7 +21,7 @@ const Service = {
 
     //Comparation in milliseconds
     if (currentDate.getTime() < user.expirationDate.getTime()) {
-      if(validateUserPermissionToAction(user))
+      if(this.validateUserPermissionToAction(user))
       {
         user.authenticated = true;
       }
