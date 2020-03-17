@@ -11,14 +11,8 @@ const Controller = {
 
   index (ctx, next) {
     
-    var resource =
-    {
-      service: get(ctx, 'params.service'),
-      resourceName: get(ctx, 'params.resourceName'),
-      resourceType: get(ctx, 'params.resourceType'),
-      resourceAction: get(ctx, 'params.resourceAction')
-    }
-
+    var resource = get(ctx, 'params.resource');
+    
     const jwtUser = ctx.state.user;
     var isAuthenticated = false;
     

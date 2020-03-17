@@ -64,7 +64,7 @@ const Service = {
     console.log(" Actions: " + user.accessAction);
     console.log(" Authenticated: " + user.authenticated);
     console.log(" Error message: " + user.error);
-    console.log(" Requested Resource: " + user.resource);
+    console.log(" Requested Resource: " + user.requestedResource);
     console.log("}");
 
   }
