@@ -220,8 +220,10 @@ var Authentication = {
       Authentication.setUserInfo(JSON.stringify(data));
       $('#authentication-div').modal('hide');
       Authentication.buildLoginDropdownMenu();
+      Authentication.removeExpiredToken();
     }).fail(function (xhr, status, error) {
       console.log("Could not reach the API to obtain the user info: " + error);
+      Authentication.logout();
     });
   },
   loadAppToken(userToken) {
