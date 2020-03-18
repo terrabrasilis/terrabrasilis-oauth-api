@@ -12,6 +12,7 @@ var Authentication = {
     this.loginStatusChangedCallback=loginStatusChanged;
     AuthenticationTranslation.init(language);
     this.buildLoginDropdownMenu();
+    this.addLoginCss();
   },
   
   showAuthenticationModal() {
@@ -385,6 +386,10 @@ var Authentication = {
   setExpiredToken(state) {
     this.setKey(this.expiredKey,state);
   },
+  addLoginCss()
+  {
+    $('head').append('<link rel="stylesheet" type="text/css" href="'+Authentication.serverURL+'css/login.css" />');
+  }
 }
 
 
