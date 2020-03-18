@@ -8,7 +8,12 @@ import compress from 'koa-compress'
 import jwt from 'koa-jwt'
 import { get, includes } from 'lodash'
 
+
 export default function configKoa (app) {
+
+  const serve = require('koa-static');
+  app.use(serve('./assets/'));
+
   app.use(compress())
   app.use(cors())
   app.use(parser({
@@ -37,4 +42,5 @@ export default function configKoa (app) {
   app.on('error', err => console.error(err))
 
   app.use(morgan(config.logType))
+
 }

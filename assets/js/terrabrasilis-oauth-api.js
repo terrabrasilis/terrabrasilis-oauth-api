@@ -39,7 +39,7 @@ var Authentication = {
     var modalLoginDiv = $('<div>',
       {
         id: "modal-login",
-        class: "modal-dialog modal-dialog-centered",
+        class: "modal-dialog modal-dialog-centered ",
         style: "min-width: 500px;"
       });
 
@@ -49,19 +49,19 @@ var Authentication = {
 
     var modalContentDiv = $('<div>',
       {
-        class: "modal-content"
+        class: "modal-content box-login"
       });
     modalLoginDiv.append(modalContentDiv);
 
     //Modal Header Div
 
-    var modalTitle = '<h5 class="modal-title" id="exampleModalLongTitle">'+AuthenticationTranslation.getTranslated('login')+'</h5>';
+    
     var modalCloseButton = '<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
 
     var modalHeaderDiv = $('<div>',
       {
         class: "modal-header",
-        html: modalTitle + modalCloseButton
+        html: modalCloseButton
       });
     modalContentDiv.append(modalHeaderDiv);
 
@@ -73,58 +73,62 @@ var Authentication = {
       });
     modalContentDiv.append(modalBodyDiv);
 
+
+    //Box login form logo Div
+    var modalBoxLoginFormLogo = $('<div>',
+      {
+        class: "box-login-form-logo"
+      });
+    modalBoxLoginFormLogo.append('<img src="'+Authentication.serverURL+'images/logo-terrabrasilis.png" alt="logo">');
+      
+    modalBodyDiv.append(modalBoxLoginFormLogo); 
+    
+    modalBodyDiv.append('<span class="box-login-form-title">TerraBrasilis</span>');
+
     //Modal Footer Div
 
-    var modalCancelButton = '<button type="button" id="login-cancel-button" class="btn btn-secondary" data-dismiss="modal">'+AuthenticationTranslation.getTranslated('submitCancel')+'</button>';
-
-    var modalLoginButton = '<button type="button" id="login-button" class="btn btn-primary">'+AuthenticationTranslation.getTranslated('submitLogin')+'</button>';
-
-    var modalFooterDiv = $('<div>',
-      {
-        class: "modal-footer",
-        html: modalCancelButton + modalLoginButton
-      });
-    modalContentDiv.append(modalFooterDiv);
-
-    $('#login-button').click(function () {
-
-      let user = $('#username-input').val();
-      let pass = $('#password-input').val();
-
-      if (user==="" || pass==="")
-      {
-        Authentication.handleError(AuthenticationTranslation.getTranslated('missing-user-pass'));
-      }
-      else
-      {
-        Authentication.login(user, pass);
-      }
-
-    });
-
-
-    // Login form alert 
-    var loginFormAlertRow = $('<div>',
-      {
-        class: 'row',
-        style: 'min-height: 60px;'
-      });
-    var loginFormAlertCol1 = $('<div>',
-    {
-      class: 'col-md-1'
-    });
-    var loginFormAlertCol2 = $('<div>',
-    {
-      class: 'col-md-10 my-auto'
-    });
-    var loginFormAlertCol3 = $('<div>',
-    {
-      class: 'col-md-1'
-    });
-    loginFormAlertCol1.appendTo(loginFormAlertRow);
-    loginFormAlertCol2.appendTo(loginFormAlertRow);
-    loginFormAlertCol3.appendTo(loginFormAlertRow);
     
+
+    
+
+    // Login box form 
+    var loginBoxForm = $('<div>',
+    {
+      class: 'box-form'
+    });
+    modalBodyDiv.append(loginBoxForm);
+    
+   
+    //Login input div
+    var loginInputDiv = $('<div>',{
+      class:"wrap-box-input validate-input"
+    });
+    loginInputDiv.attr('data-validate', AuthenticationTranslation.getTranslated('username-validation'));
+    loginInputDiv.append('<i class="material-icons">person</i>');
+    loginInputDiv.append('<input class="box-input" type="text" name="username" placeholder="'+AuthenticationTranslation.getTranslated('username')+'" id="username-input">');
+    loginInputDiv.append('<span class="focus-box-input" data-placeholder=""></span>');
+
+    loginBoxForm.append(loginInputDiv);
+
+    //Login password div
+    var loginPasswordDiv = $('<div>',{
+      class:"wrap-box-input validate-input"
+    });
+    loginPasswordDiv.attr('data-validate', AuthenticationTranslation.getTranslated('password-validation'));
+    loginPasswordDiv.append('<i class="material-icons">lock</i>');
+    loginPasswordDiv.append('<input class="box-input" type="password" name="pass" placeholder="'+AuthenticationTranslation.getTranslated('password')+'" id="password-input">');
+    loginPasswordDiv.append('<span class="focus-box-input" data-placeholder=""></span>');
+
+  loginBoxForm.append(loginPasswordDiv);
+  
+    var btnContainerDiv = $('<div>',
+    {
+      class:"container-box-login-form-btn"
+    });
+		btnContainerDiv.append('<button type="button" id="login-button" onclick="Authentication.validateLogin()" class="box-login-form-btn">'+AuthenticationTranslation.getTranslated('submitLogin')+'</button>');				
+    
+    loginBoxForm.append(btnContainerDiv);
+
     var loginFormAlert = $('<div>',
     {
       class: 'alert alert-danger alert-dismissible fade show align-middle justify-content-center',
@@ -132,59 +136,33 @@ var Authentication = {
       id:'loginAlert'
     });
     loginFormAlert.hide();
-    loginFormAlert.appendTo(loginFormAlertCol2);
-    modalBodyDiv.append(loginFormAlertRow);
+    modalBodyDiv.append(loginFormAlert);
 
-
-    // Login form input group
-    var loginFormGroupRow = $('<div>',
-      {
-        class: 'row'
-      });
-    var loginFormGroupCol1 = $('<div>',
-      {
-        class: 'col-sm-2'
-      });
-    var loginFormGroupCol2 = $('<div>',
-      {
-        class: 'col-sm-8'
-      });
-    var loginFormGroupCol3 = $('<div>',
-      {
-        class: 'col-sm-2'
-      });
-    loginFormGroupRow.append(loginFormGroupCol1);
-    loginFormGroupRow.append(loginFormGroupCol2);
-    loginFormGroupRow.append(loginFormGroupCol3);
-
-    loginFormGroupRow.appendTo(modalBodyDiv);
-
-    //Login form group
-    var loginFormGroup = $('<div class="form-group"></div>');
-    var loginLabel = $('<label for="username-input">'+AuthenticationTranslation.getTranslated('username')+'</label>');
-    var loginInput = $('<input type="text" class="form-control" id="username-input">');
-    loginFormGroup.append(loginLabel);
-    loginFormGroup.append(loginInput);
-    loginFormGroup.appendTo(loginFormGroupCol2);
-
-    //Password form group
-    var pwdFormGroup = $('<div class="form-group"></div>');
-    var pwdLabel = $('<label for="password-input">'+AuthenticationTranslation.getTranslated('password')+'</label>');
-    var pwdInput = $('<input type="password" class="form-control" id="password-input">');
-    pwdFormGroup.append(pwdLabel);
-    pwdFormGroup.append(pwdInput);
-    pwdFormGroup.appendTo(loginFormGroupCol2);
     $(function(){
       //Login when pressing enter
-      pwdInput.keypress(function(e){
+      $('#password-input').keypress(function(e){
         if(e.which == 13) {
-          $('#login-button').click();
+          $('#login-button').click(); 
         }
       })
-    })
+    });
 
     $('#authentication-div').modal('show');
 
+  },
+  validateLogin()
+  {
+    let user = $('#username-input').val();
+    let pass = $('#password-input').val();
+
+    if (user==="" || pass==="")
+    {
+      Authentication.handleError(AuthenticationTranslation.getTranslated('missing-user-pass'));
+    }
+    else
+    {
+      Authentication.login(user, pass);
+    }
   },
   handleError(message)
   {
@@ -319,10 +297,21 @@ var Authentication = {
     a.attr("data-toggle", "dropdown");
     a.attr("href", "#");
 
-    a.append('<i class="material-icons iconmobile">assignment </i><span id="maps-sup"><img id="login"  style="width:28px; height:28px; border-radius:50%" alt="Login" src="img/usuario.jpg" title="Autentique"></span>');
-    a.appendTo(li);
+    let userImageUrl = '';
+    if (this.hasToken()) 
+    {
+      userImageUrl = Authentication.serverURL+'images/user-logado.png';
+    }
+    else
+    {
+      userImageUrl = Authentication.serverURL+'images/user-deslogado.png';
+    }
 
-      
+    //Adding image logged or unlogged
+    let imagetag = '<img id="login"  style="width:28px; height:28px; border-radius:50%" alt="Login" src="'+userImageUrl+'" title="Autentique">';
+    a.append('<i class="material-icons iconmobile">assignment </i><span id="maps-sup">'+imagetag+'</span>');
+    a.appendTo(li);
+  
 
     let dropDownDiv = $('<div/>',
       {
@@ -332,7 +321,7 @@ var Authentication = {
       });
     dropDownDiv.attr("aria-labelledby", "navbarDropdownLoginLink");
     dropDownDiv.appendTo(li);
-
+    
     if (this.hasToken()) {
       let info = this.getUserInfo();
 
@@ -353,6 +342,7 @@ var Authentication = {
 
     }
     else {
+
       let a = $('<a/>',
         {
           class: 'dropdown-item',
@@ -364,7 +354,9 @@ var Authentication = {
     //Appending to navigation menu default UL
 
     $('#navigationBarUL').append(li);
+    
 
+  
 
   },
   hasToken() {
@@ -427,7 +419,10 @@ var AuthenticationTranslation = {
       'password':"Senha",
       'logout':"Sair",
       'login':"Entrar",
-      'missing-user-pass':"Usuário ou senha não foram preenchidos!"
+      'missing-user-pass':"Usuário ou senha não foram preenchidos!",
+      'username-validation':"Entre com o usuário",
+      'password-validation':"Entre com a senha"
+
 
     },
     'en':
@@ -439,7 +434,9 @@ var AuthenticationTranslation = {
       'password':"Password",
       'logout':"Logout",
       'login':"Login",
-      'missing-user-pass':"Missing username or password!"
+      'missing-user-pass':"Missing username or password!",
+      'username-validation':"Insert an username",
+      'password-validation':"Insert a password"
     }
   },
   changeLanguage(lang)
