@@ -354,10 +354,7 @@ var Authentication = {
     //Appending to navigation menu default UL
 
     $('#navigationBarUL').append(li);
-    
-
-  
-
+ 
   },
   hasToken() {
     var token = this.getValueByKey(this.tokenKey);

@@ -18,10 +18,14 @@ const Controller = {
  
     let contents = fs.readFileSync(filePath);
 
+    var packageJSON = require(__dirname+'/../../../package.json');
+    
     //Adding requested address to be used as reference to load assets
     var fullUrl = ctx.href;
     fullUrl = fullUrl.replace('getoauthjs','');
     contents +=  "\n Authentication.serverURL='" + fullUrl+"';";
+    contents +=  "\n Authentication.version='" + packageJSON.version+"';";
+    
     ctx.body = contents;
   }
   
