@@ -13,8 +13,8 @@ const Service = {
       accessType : jwtUser.access[0].type,
       accessName : jwtUser.access[0].name,
       accessAction : jwtUser.access[0].actions[0],
-      error : "",
-      authenticated : false
+      authenticated : false,
+      token : ''
     }
 
     var currentDate = new Date();
