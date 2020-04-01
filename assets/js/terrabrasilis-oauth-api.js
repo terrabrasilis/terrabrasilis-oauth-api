@@ -13,6 +13,7 @@ var Authentication = {
     AuthenticationTranslation.init(language);
     this.buildLoginDropdownMenu();
     this.addLoginCss();
+    this.equalizeStorageAndCookieToken();        
   },
   
   showAuthenticationModal() {
@@ -226,6 +227,7 @@ var Authentication = {
 
   setToken(value) {
     this.setKey(this.tokenKey, value);
+    this.setCookie(this.tokenKey, value, 1);
   },
   /**
    * Set a new value for the specified key.
@@ -254,6 +256,7 @@ var Authentication = {
     this.removeExpiredToken();
     this.buildLoginDropdownMenu();
     this.loginStatusChanged();
+    this.eraseCookie(this.tokenKey);
   },
   removeUserInfo() {
     this.setKey(this.usedInfoKey, null);
@@ -389,6 +392,46 @@ var Authentication = {
   addLoginCss()
   {
     $('head').append('<link rel="stylesheet" type="text/css" href="'+Authentication.serverURL+'css/login.css" />');
+  },
+  setCookie(name, value, days) {
+    document.cookie = name + "=" + (value || "") + "; path=/";
+  },
+  getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  },
+  eraseCookie(name) {
+    document.cookie = name + '=; path=/';
+
+    let cookie = document.cookie;
+    cookie
+  },
+  /**
+   * This method equalizes storage token status with cookies. This is to be able to add from token to cookie if it already exists on LocalStorage
+   * Now setToken always sets on Cookie also.
+   * This equalization will run only when the application has inited this api and has a LocalStorage Token Key and not and Cookie Token key
+   */
+  equalizeStorageAndCookieToken()
+  {
+    if(this.hasToken())
+    {
+      let cookie = this.getCookie(this.tokenKey);
+      if(cookie==null)
+      {
+        this.setToken(this.getToken());
+      }
+    }
+    else
+    {
+      this.eraseCookie(this.tokenKey);
+    }
+    
   }
 }
 

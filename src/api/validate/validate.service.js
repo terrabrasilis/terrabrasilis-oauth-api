@@ -5,35 +5,47 @@ const Service = {
    * @param {*} expiration Time from Python in Seconds
    */
   validate(jwtUser, resource) {
+
     var user={
-      expirationDate : new Date(jwtUser.exp * 1000),
-      issuedAtDate : new Date(jwtUser.iat * 1000),
-      id : jwtUser.user_id,
+      expirationDate : null,
+      issuedAtDate : null,
+      id : null,
       requestedResource : resource,
-      accessType : jwtUser.access[0].type,
-      accessName : jwtUser.access[0].name,
-      accessAction : jwtUser.access[0].actions[0],
+      accessType : null,
+      accessName : null,
+      accessAction : null,
       authenticated : false,
       token : ''
     }
 
-    var currentDate = new Date();
+    if(jwtUser)
+    {
+      user.expirationDate = new Date(jwtUser.exp * 1000);
+      user.issuedAtDate = new Date(jwtUser.iat * 1000);
+      user.id = jwtUser.user_id;
+      user.requestedResource = resource;
+      user.accessType = jwtUser.access[0].type;
+      user.accessName = jwtUser.access[0].name;
+      user.accessAction = jwtUser.access[0].actions[0];
+      user.authenticated = false;
+      user.token = '';
+      
+      var currentDate = new Date();
 
-    //Comparation in milliseconds
-    if (currentDate.getTime() < user.expirationDate.getTime()) {
-      if(this.validateUserPermissionToAction(user))
-      {
-        user.authenticated = true;
+      //Comparation in milliseconds
+      if (currentDate.getTime() < user.expirationDate.getTime()) {
+        if (this.validateUserPermissionToAction(user)) {
+          user.authenticated = true;
+        }
+        else {
+          user.error = "The requested resource is not available for this authentication session.";
+        }
       }
-      else
-      {
-        user.error = "The requested resource is not available for this authentication session.";
+      else {
+        user.error = "The requested authentication session has expired.";
       }
     }
-    else {
-      user.error = "The requested authentication session has expired.";
-    }
-
+    
     return user;
 
   },

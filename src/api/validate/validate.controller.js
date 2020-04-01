@@ -16,18 +16,19 @@ const Controller = {
     const jwtUser = ctx.state.user;
     var isAuthenticated = false;
     
-    if(jwtUser) 
-    {
-      isAuthenticated = true;
-    } 
-
     var user = Service.validate(jwtUser, resource);
 
     Service.logAccess(user);
-
+    
     ctx.set('Content-disposition', 'inline');
     ctx.set('Content-Type', ' application/json; charset=utf-8');
     ctx.body = JSON.stringify(user);
+  
+    if(!jwtUser)
+    {
+      ctx.status=203;
+    }
+    
   } 
 
 }
