@@ -36,9 +36,9 @@ const Controller = {
       fullUrl = ctx.href;
     }
     
-    fullUrl = fullUrl.replace('getoauthjs','');
+    fullUrl = fullUrl.split('getoauthjs');
 
-    contents +=  "\n Authentication.serverURL='" + fullUrl+"';";
+    contents +=  "\n Authentication.serverURL='" + fullUrl[0]+"';";
     contents +=  "\n Authentication.version='" + packageJSON.version+"';";
     
     ctx.body = contents;
