@@ -1,5 +1,5 @@
 var Authentication = {
-  oauthURL: "http://brazildatacube.dpi.inpe.br",
+  oauthURL: "http://oauth.dpi.inpe.br",
   tokenKey: "oauth.obt.inpe.br",
   service: "terrabrasilis",
   scope: "portal:dash:admin",
