@@ -1,5 +1,5 @@
 var Authentication = {
-  oauthURL: "http://oauth.dpi.inpe.br",
+  oauthURL: "http://oauth.dpi.inpe.br/api",
   tokenKey: "oauth.obt.inpe.br",
   service: "terrabrasilis",
   scope: "portal:dash:admin",
