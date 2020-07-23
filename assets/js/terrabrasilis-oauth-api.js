@@ -6,6 +6,10 @@ var Authentication = {
   expiredKey: "expired_token",
   usedInfoKey: "user_info",
   loginStatusChangedCallback: null,
+  terrabrasilisOauthApiURL: "http://terrabrasilis.dpi.inpe.br/oauth-api/",
+  expirationGuardInterval: null,
+  validationData: null,
+  validationInterval: 300000,
 
   init(language, loginStatusChanged)
   {
@@ -13,7 +17,11 @@ var Authentication = {
     AuthenticationTranslation.init(language);
     this.buildLoginDropdownMenu();
     this.addLoginCss();
-    this.equalizeStorageAndCookieToken();        
+    this.equalizeStorageAndCookieToken();
+    if(this.hasToken())
+    {
+      this.validateToken(this.getToken());        
+    }
   },
   
   showAuthenticationModal() {
@@ -166,6 +174,24 @@ var Authentication = {
       Authentication.login(user, pass);
     }
   },
+  validateToken(userToken)
+  {
+    $.ajax(this.terrabrasilisOauthApiURL + "/validate/" + this.service, {
+      type: "GET",
+      dataType: 'json',
+      headers: {
+        "Authorization": "Bearer " + userToken
+      },
+      contentType: "application/json",
+    }).done(function (data) {
+      console.log("User authentication token is valid");
+      Authentication.validationData = data;
+      Authentication.configureExpirationGuard();
+    }).fail(function (xhr, status, error) {
+      console.log("User authentication token is invalid, logging out...");
+      Authentication.logout();
+    });
+  },
   handleError(message)
   {
     $('#loginAlert').html(message);
@@ -218,10 +244,14 @@ var Authentication = {
       var myToken = data.access_token;
       Authentication.setToken(myToken);
       Authentication.loadUserInfo(data.user_id, userToken);
+      Authentication.validateToken(myToken);
       Authentication.loginStatusChanged();
+
+      return true;
     }).fail(function (xhr, status, error) {
       console.log("Could not reach the API to obtain App Token: " + error);
       $('#modal-container-warning').modal('show');
+      return false;
     });
   },
 
@@ -257,6 +287,14 @@ var Authentication = {
     this.buildLoginDropdownMenu();
     this.loginStatusChanged();
     this.eraseCookie(this.tokenKey);
+    
+    if(this.expirationGuardInterval!=null)
+    {
+      clearInterval(this.expirationGuardInterval);
+      this.expirationGuardInterval=null;
+    }
+    this.validationData=null;
+    
   },
   removeUserInfo() {
     this.setKey(this.usedInfoKey, null);
@@ -342,7 +380,7 @@ var Authentication = {
         });
       a.attr("href", "javascript:Authentication.logout();");
       a.appendTo(dropDownDiv);
-     
+           
 
     }
     else {
@@ -430,6 +468,46 @@ var Authentication = {
     else
     {
       this.eraseCookie(this.tokenKey);
+    }
+    
+  },
+  /**
+   * This functions configure an interval to check if the authentication token is still valid for the current session
+   */
+  configureExpirationGuard()
+  {
+    if(this.hasToken()
+    && this.validationData
+    && this.validationData.authenticated==true)
+    {
+      this.expirationGuardInterval = setInterval(this.expirationCheck,this.validationInterval);
+    }
+    else
+    {
+      this.logout();
+    }
+    
+  },
+  /**
+   * This functions checks if the authentication token is still valid for the current session, if not it forces a logout.
+   */
+  expirationCheck()
+  {
+    if(Authentication.hasToken()
+    && Authentication.validationData
+    && Authentication.validationData.authenticated==true)
+    {
+      var now = new Date();
+      var expiration = new Date(Authentication.validationData.expirationDate);
+
+      if(now>expiration)
+      {
+        Authentication.logout();
+      }
+    }
+    else
+    {
+      Authentication.logout();
     }
     
   }
