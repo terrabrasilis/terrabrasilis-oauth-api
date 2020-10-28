@@ -10,6 +10,7 @@ var Authentication = {
   expirationGuardInterval: null,
   validationData: null,
   validationInterval: 300000,
+  ul2append: "#navigationBarUL",
 
   init(language, loginStatusChanged)
   {
@@ -22,6 +23,15 @@ var Authentication = {
     {
       this.validateToken(this.getToken());        
     }
+  },
+  initCustom(language, loginStatusChanged, customUl2append)
+  {
+    if(customUl2append)
+    {
+      this.ul2append = customUl2append;
+    }
+
+    this.init(language, loginStatusChanged);
   },
   
   showAuthenticationModal() {
@@ -96,10 +106,6 @@ var Authentication = {
     modalBodyDiv.append('<span class="box-login-form-title">TerraBrasilis</span>');
 
     //Modal Footer Div
-
-    
-
-    
 
     // Login box form 
     var loginBoxForm = $('<div>',
@@ -395,7 +401,7 @@ var Authentication = {
     }
     //Appending to navigation menu default UL
 
-    $('#navigationBarUL').append(li);
+    $(this.ul2append).append(li);
  
   },
   hasToken() {
