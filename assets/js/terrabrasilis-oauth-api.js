@@ -430,6 +430,10 @@ var Authentication = {
       this.loginStatusChangedCallback();
     }
   },
+  setLoginStatusChangedCallback(callback)
+  {
+    this.loginStatusChangedCallback = callback;
+  },
   setExpiredToken(state) {
     this.setKey(this.expiredKey,state);
   },
@@ -496,6 +500,7 @@ var Authentication = {
   },
   /**
    * This functions checks if the authentication token is still valid for the current session, if not it forces a logout.
+   * Returns true if expired
    */
   expirationCheck()
   {
@@ -509,12 +514,15 @@ var Authentication = {
       if(now>expiration)
       {
         Authentication.logout();
+        return true;
       }
     }
     else
     {
       Authentication.logout();
+      return true;
     }
+    return false;
     
   }
 }
@@ -574,4 +582,43 @@ var AuthenticationTranslation = {
     Authentication.buildLoginDropdownMenu();
   }
 
+}
+var AuthenticationService = {
+  downloadFile(url, publicFileName, privateFilename)
+  {
+    var filename = publicFileName;
+    let anchor = document.createElement("a");
+    document.body.appendChild(anchor);
+
+    let headers = new Headers();
+    
+    if(Authentication.hasToken())
+    {
+      
+      //Check if token is expired or not. If is expired it will logout
+      if(Authentication.expirationCheck())
+      {
+        window.location.reload();
+        return;
+      }
+      
+      filename = privateFilename;
+
+      let bearer = "Bearer " + Authentication.getToken();
+      headers.append('Authorization', bearer);
+    }
+
+    fetch(url, { headers })
+        .then(response => response.blob())
+        .then(blobby => {
+            let objectUrl = window.URL.createObjectURL(blobby);
+
+            anchor.href = objectUrl;
+            anchor.download = filename;
+            anchor.click();
+
+            window.URL.revokeObjectURL(objectUrl);
+        });
+   
+  }
 }
