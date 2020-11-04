@@ -584,14 +584,12 @@ var AuthenticationTranslation = {
 
 }
 var AuthenticationService = {
-  downloadFile(url, publicFileName, privateFilename)
+  downloadFile(url, startDownloadCallback, doneDownloadCallback)
   {
-    var filename = publicFileName;
     let anchor = document.createElement("a");
     document.body.appendChild(anchor);
 
-    let headers = new Headers();
-    
+    var bearer=null;
     if(Authentication.hasToken())
     {
       
@@ -601,24 +599,66 @@ var AuthenticationService = {
         window.location.reload();
         return;
       }
-      
-      filename = privateFilename;
 
-      let bearer = "Bearer " + Authentication.getToken();
-      headers.append('Authorization', bearer);
+      bearer = "Bearer " + Authentication.getToken();
     }
 
-    fetch(url, { headers })
-        .then(response => response.blob())
-        .then(blobby => {
-            let objectUrl = window.URL.createObjectURL(blobby);
+    //Invokink callback, application should show loading or block button
+    if(startDownloadCallback)
+    {
+        startDownloadCallback();
+    }
 
-            anchor.href = objectUrl;
-            anchor.download = filename;
-            anchor.click();
-
-            window.URL.revokeObjectURL(objectUrl);
-        });
+    var xhr=new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.responseType = 'arraybuffer';
    
-  }
+    //Adding authorization if token is present
+    if(bearer!=null)
+    {
+      xhr.setRequestHeader("Authorization", bearer);
+    }
+
+    xhr.addEventListener('load',function()
+        {
+        if (xhr.status === 200){
+
+            var arrayBuffer = xhr.response;
+
+            var filename = AuthenticationService.getFilenameFromContentDisposition(xhr);
+
+            AuthenticationService.saveByteArray(filename, arrayBuffer);
+
+            //Invokink callback, application should hide loading or enable button
+            if(doneDownloadCallback)
+            {
+                doneDownloadCallback();
+            }
+        }
+    })
+    xhr.send();
+   
+  },
+  getFilenameFromContentDisposition(xhr)
+  {
+      var filename = "";
+      var disposition = xhr.getResponseHeader('Content-Disposition');
+      if (disposition && disposition.indexOf('filename') !== -1) {
+          if(disposition.split("=").length==2)
+          {
+              filename=disposition.split("=")[1];
+          }
+      }
+      return filename;
+  },
+  saveByteArray(filename, byte) {
+    var blob = new Blob([byte], {type: "octet/stream"});
+    var link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    if(filename!="")
+    {
+        link.download = filename;
+    }                
+    link.click();
+}
 }
