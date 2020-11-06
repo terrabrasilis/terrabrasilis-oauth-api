@@ -48,7 +48,7 @@ var Authentication = {
       id: 'authentication-div',
       frameborder: 0,
       style: "position: absolute",
-      class: "modal fade",
+      class: "modal-auth",
       tabindex: "-1",
       role: "dialog"
     });
@@ -59,7 +59,7 @@ var Authentication = {
     var modalLoginDiv = $('<div>',
       {
         id: "modal-login",
-        class: "modal-dialog modal-dialog-centered ",
+        class: "modal-auth-dialog modal-auth-dialog-centered ",
         style: "min-width: 500px;"
       });
 
@@ -69,18 +69,17 @@ var Authentication = {
 
     var modalContentDiv = $('<div>',
       {
-        class: "modal-content box-login"
+        class: "modal-auth-content box-login"
       });
     modalLoginDiv.append(modalContentDiv);
 
     //Modal Header Div
-
     
-    var modalCloseButton = '<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+    var modalCloseButton = '<span class="close">&times;</span>';
 
     var modalHeaderDiv = $('<div>',
       {
-        class: "modal-header",
+        class: "modal-auth-header",
         html: modalCloseButton
       });
     modalContentDiv.append(modalHeaderDiv);
@@ -147,7 +146,7 @@ var Authentication = {
 
     var loginFormAlert = $('<div>',
     {
-      class: 'alert alert-danger alert-dismissible fade show align-middle justify-content-center',
+      class: 'alert alert-danger alert-dismissible show align-middle justify-content-center',
       role: 'alert',
       id:'loginAlert'
     });
@@ -162,8 +161,50 @@ var Authentication = {
         }
       })
     });
+    this.showAuhenticationDiv(true);
+    //$('#authentication-div').modal('show');
 
-    $('#authentication-div').modal('show');
+
+  },
+  showWarningDiv(show)
+  {
+    if(show==true)
+    {
+      var authenticationDiv = $("#modal-container-warning");
+      authenticationDiv.css("display","block");
+    }
+    else
+    {
+      var authenticationDiv = $("#modal-container-warning");
+      authenticationDiv.css("display","none");
+    }
+
+  },
+  showAuhenticationDiv(show)
+  {
+    if(show==true)
+    {
+      var authenticationDiv = $("#authentication-div");
+      authenticationDiv.css("display","block");
+      
+      $('body').css("overflow-y", "hidden");
+      
+      $(".close").on("click",function()
+      {
+        Authentication.showAuhenticationDiv(false);
+      });
+
+    }
+    else
+    {
+
+      $('body').css("overflow-y", "");
+
+      var authenticationDiv = $("#authentication-div");
+      authenticationDiv.css("display","none");
+    }
+    
+
 
   },
   validateLogin()
@@ -230,7 +271,8 @@ var Authentication = {
       contentType: "application/json",
     }).done(function (data) {
       Authentication.setUserInfo(JSON.stringify(data));
-      $('#authentication-div').modal('hide');
+      //$('#authentication-div').modal('hide');
+      Authentication.showAuhenticationDiv(false);
       Authentication.buildLoginDropdownMenu();
       Authentication.removeExpiredToken();
     }).fail(function (xhr, status, error) {
@@ -256,7 +298,8 @@ var Authentication = {
       return true;
     }).fail(function (xhr, status, error) {
       console.log("Could not reach the API to obtain App Token: " + error);
-      $('#modal-container-warning').modal('show');
+//      $('#modal-container-warning').modal('show');
+      this.showWarningDiv(true);
       return false;
     });
   },
@@ -328,7 +371,7 @@ var Authentication = {
     else {
       li = $('<li>',
         {
-          class: "nav-item dropdown",
+          class: "nav-item dropdown-auth",
           id: "login-li"
         });
     }
@@ -364,8 +407,8 @@ var Authentication = {
     let dropDownDiv = $('<div/>',
       {
         id: "navbarDropdownLoginPopup",
-        class: "dropdown-menu submenu",
-        style: "right: 0px; left: auto;"
+        class: "submenu dropdown-auth-content",
+        style: ""
       });
     dropDownDiv.attr("aria-labelledby", "navbarDropdownLoginLink");
     dropDownDiv.appendTo(li);
@@ -375,13 +418,13 @@ var Authentication = {
 
       $('<a/>',
         {
-          class: 'dropdown-item',
+          class: 'dropdown-auth-item',
           html: '<b style="color:#6c757d;">' + info.name + ' / ' + info.institution + '</b>'
         }).appendTo(dropDownDiv);
 
       let a = $('<a/>',
         {
-          class: 'dropdown-item',
+          class: 'dropdown-auth-item',
           html: '<span >'+AuthenticationTranslation.getTranslated('logout')+'</span>'
         });
       a.attr("href", "javascript:Authentication.logout();");
@@ -393,7 +436,7 @@ var Authentication = {
 
       let a = $('<a/>',
         {
-          class: 'dropdown-item',
+          class: 'dropdown-auth-item',
           html: '<span >'+AuthenticationTranslation.getTranslated('login')+'</span>'
         });
       a.attr("href", "javascript:Authentication.showAuthenticationModal();");
