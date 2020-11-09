@@ -180,8 +180,7 @@
 }
 
 /* Drop meniu */
-.dropbtn {border: none;   height: 25px; width: 25px; padding: 5px;  background-color: #bbb; border-radius: 50%;
-  display: inline-block;}
+
 .dropdown-auth {position: relative; display: inline-block; font-family: 'Poppins', sans-serif;
 
 }
