@@ -703,5 +703,27 @@ var AuthenticationService = {
         link.download = filename;
     }                
     link.click();
-}
+  },
+  isAuthenticated()
+  {
+    return  Authentication.hasToken() && !Authentication.expirationCheck();
+  },
+  getBearer()
+  { 
+    var bearer="";
+    if(this.isAuthenticated())
+    {
+      bearer = "Bearer " + Authentication.getToken();
+    }
+    return bearer;
+  },
+  getToken()
+  { 
+    var token="";
+    if(this.isAuthenticated())
+    {
+      token = Authentication.getToken();
+    }
+    return token;
+  }
 }
