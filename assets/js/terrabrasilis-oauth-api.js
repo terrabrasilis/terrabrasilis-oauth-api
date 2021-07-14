@@ -359,9 +359,13 @@ var Authentication = {
   getUserData(){
     return JSON.parse(this.getValueByKey(this.usedDataKey));
   },
+  removeUserData(){
+    this.setKey(this.usedDataKey, null);
+  },
   logout() {
     this.removeToken();
     this.removeUserInfo();
+    this.removeUserData();
     this.removeExpiredToken();
     this.buildLoginDropdownMenu();
     this.loginStatusChanged();
