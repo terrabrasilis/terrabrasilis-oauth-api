@@ -6,6 +6,11 @@ var Authentication = {
   expiredKey: "expired_token",
   usedInfoKey: "user_info",
   loginStatusChangedCallback: null,
+  terrabrasilisOauthApiURL: "http://terrabrasilis.dpi.inpe.br/oauth-api/",
+  expirationGuardInterval: null,
+  validationData: null,
+  validationInterval: 300000,
+  ul2append: "#navigationBarUL",
 
   init(language, loginStatusChanged)
   {
@@ -13,7 +18,20 @@ var Authentication = {
     AuthenticationTranslation.init(language);
     this.buildLoginDropdownMenu();
     this.addLoginCss();
-    this.equalizeStorageAndCookieToken();        
+    this.equalizeStorageAndCookieToken();
+    if(this.hasToken())
+    {
+      this.validateToken(this.getToken());        
+    }
+  },
+  initCustom(language, loginStatusChanged, customUl2append)
+  {
+    if(customUl2append)
+    {
+      this.ul2append = customUl2append;
+    }
+
+    this.init(language, loginStatusChanged);
   },
   
   showAuthenticationModal() {
@@ -30,7 +48,7 @@ var Authentication = {
       id: 'authentication-div',
       frameborder: 0,
       style: "position: absolute",
-      class: "modal fade",
+      class: "modal-auth",
       tabindex: "-1",
       role: "dialog"
     });
@@ -41,7 +59,7 @@ var Authentication = {
     var modalLoginDiv = $('<div>',
       {
         id: "modal-login",
-        class: "modal-dialog modal-dialog-centered ",
+        class: "modal-auth-dialog modal-auth-dialog-centered ",
         style: "min-width: 500px;"
       });
 
@@ -51,18 +69,17 @@ var Authentication = {
 
     var modalContentDiv = $('<div>',
       {
-        class: "modal-content box-login"
+        class: "modal-auth-content box-login"
       });
     modalLoginDiv.append(modalContentDiv);
 
     //Modal Header Div
-
     
-    var modalCloseButton = '<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+    var modalCloseButton = '<span class="close">&times;</span>';
 
     var modalHeaderDiv = $('<div>',
       {
-        class: "modal-header",
+        class: "modal-auth-header",
         html: modalCloseButton
       });
     modalContentDiv.append(modalHeaderDiv);
@@ -88,10 +105,6 @@ var Authentication = {
     modalBodyDiv.append('<span class="box-login-form-title">TerraBrasilis</span>');
 
     //Modal Footer Div
-
-    
-
-    
 
     // Login box form 
     var loginBoxForm = $('<div>',
@@ -133,7 +146,7 @@ var Authentication = {
 
     var loginFormAlert = $('<div>',
     {
-      class: 'alert alert-danger alert-dismissible fade show align-middle justify-content-center',
+      class: 'alert alert-danger alert-dismissible show align-middle justify-content-center',
       role: 'alert',
       id:'loginAlert'
     });
@@ -148,8 +161,50 @@ var Authentication = {
         }
       })
     });
+    this.showAuhenticationDiv(true);
+    //$('#authentication-div').modal('show');
 
-    $('#authentication-div').modal('show');
+
+  },
+  showWarningDiv(show)
+  {
+    if(show==true)
+    {
+      var authenticationDiv = $("#modal-container-warning");
+      authenticationDiv.css("display","block");
+    }
+    else
+    {
+      var authenticationDiv = $("#modal-container-warning");
+      authenticationDiv.css("display","none");
+    }
+
+  },
+  showAuhenticationDiv(show)
+  {
+    if(show==true)
+    {
+      var authenticationDiv = $("#authentication-div");
+      authenticationDiv.css("display","block");
+      
+      $('body').css("overflow-y", "hidden");
+      
+      $(".close").on("click",function()
+      {
+        Authentication.showAuhenticationDiv(false);
+      });
+
+    }
+    else
+    {
+
+      $('body').css("overflow-y", "");
+
+      var authenticationDiv = $("#authentication-div");
+      authenticationDiv.css("display","none");
+    }
+    
+
 
   },
   validateLogin()
@@ -165,6 +220,24 @@ var Authentication = {
     {
       Authentication.login(user, pass);
     }
+  },
+  validateToken(userToken)
+  {
+    $.ajax(this.terrabrasilisOauthApiURL + "/validate/" + this.service, {
+      type: "GET",
+      dataType: 'json',
+      headers: {
+        "Authorization": "Bearer " + userToken
+      },
+      contentType: "application/json",
+    }).done(function (data) {
+      console.log("User authentication token is valid");
+      Authentication.validationData = data;
+      Authentication.configureExpirationGuard();
+    }).fail(function (xhr, status, error) {
+      console.log("User authentication token is invalid, logging out...");
+      Authentication.logout();
+    });
   },
   handleError(message)
   {
@@ -198,7 +271,8 @@ var Authentication = {
       contentType: "application/json",
     }).done(function (data) {
       Authentication.setUserInfo(JSON.stringify(data));
-      $('#authentication-div').modal('hide');
+      //$('#authentication-div').modal('hide');
+      Authentication.showAuhenticationDiv(false);
       Authentication.buildLoginDropdownMenu();
       Authentication.removeExpiredToken();
     }).fail(function (xhr, status, error) {
@@ -218,10 +292,15 @@ var Authentication = {
       var myToken = data.access_token;
       Authentication.setToken(myToken);
       Authentication.loadUserInfo(data.user_id, userToken);
+      Authentication.validateToken(myToken);
       Authentication.loginStatusChanged();
+
+      return true;
     }).fail(function (xhr, status, error) {
       console.log("Could not reach the API to obtain App Token: " + error);
-      $('#modal-container-warning').modal('show');
+//      $('#modal-container-warning').modal('show');
+      this.showWarningDiv(true);
+      return false;
     });
   },
 
@@ -257,6 +336,14 @@ var Authentication = {
     this.buildLoginDropdownMenu();
     this.loginStatusChanged();
     this.eraseCookie(this.tokenKey);
+    
+    if(this.expirationGuardInterval!=null)
+    {
+      clearInterval(this.expirationGuardInterval);
+      this.expirationGuardInterval=null;
+    }
+    this.validationData=null;
+    
   },
   removeUserInfo() {
     this.setKey(this.usedInfoKey, null);
@@ -284,7 +371,7 @@ var Authentication = {
     else {
       li = $('<li>',
         {
-          class: "nav-item dropdown",
+          class: "nav-item dropdown-auth",
           id: "login-li"
         });
     }
@@ -320,8 +407,8 @@ var Authentication = {
     let dropDownDiv = $('<div/>',
       {
         id: "navbarDropdownLoginPopup",
-        class: "dropdown-menu submenu",
-        style: "right: 0px; left: auto;"
+        class: "submenu dropdown-auth-content",
+        style: ""
       });
     dropDownDiv.attr("aria-labelledby", "navbarDropdownLoginLink");
     dropDownDiv.appendTo(li);
@@ -331,25 +418,25 @@ var Authentication = {
 
       $('<a/>',
         {
-          class: 'dropdown-item',
+          class: 'dropdown-auth-item',
           html: '<b style="color:#6c757d;">' + info.name + ' / ' + info.institution + '</b>'
         }).appendTo(dropDownDiv);
 
       let a = $('<a/>',
         {
-          class: 'dropdown-item',
+          class: 'dropdown-auth-item',
           html: '<span >'+AuthenticationTranslation.getTranslated('logout')+'</span>'
         });
       a.attr("href", "javascript:Authentication.logout();");
       a.appendTo(dropDownDiv);
-     
+           
 
     }
     else {
 
       let a = $('<a/>',
         {
-          class: 'dropdown-item',
+          class: 'dropdown-auth-item',
           html: '<span >'+AuthenticationTranslation.getTranslated('login')+'</span>'
         });
       a.attr("href", "javascript:Authentication.showAuthenticationModal();");
@@ -357,7 +444,7 @@ var Authentication = {
     }
     //Appending to navigation menu default UL
 
-    $('#navigationBarUL').append(li);
+    $(this.ul2append).append(li);
  
   },
   hasToken() {
@@ -385,6 +472,10 @@ var Authentication = {
     {
       this.loginStatusChangedCallback();
     }
+  },
+  setLoginStatusChangedCallback(callback)
+  {
+    this.loginStatusChangedCallback = callback;
   },
   setExpiredToken(state) {
     this.setKey(this.expiredKey,state);
@@ -431,6 +522,50 @@ var Authentication = {
     {
       this.eraseCookie(this.tokenKey);
     }
+    
+  },
+  /**
+   * This functions configure an interval to check if the authentication token is still valid for the current session
+   */
+  configureExpirationGuard()
+  {
+    if(this.hasToken()
+    && this.validationData
+    && this.validationData.authenticated==true)
+    {
+      this.expirationGuardInterval = setInterval(this.expirationCheck,this.validationInterval);
+    }
+    else
+    {
+      this.logout();
+    }
+    
+  },
+  /**
+   * This functions checks if the authentication token is still valid for the current session, if not it forces a logout.
+   * Returns true if expired
+   */
+  expirationCheck()
+  {
+    if(Authentication.hasToken()
+    && Authentication.validationData
+    && Authentication.validationData.authenticated==true)
+    {
+      var now = new Date();
+      var expiration = new Date(Authentication.validationData.expirationDate);
+
+      if(now>expiration)
+      {
+        Authentication.logout();
+        return true;
+      }
+    }
+    else
+    {
+      Authentication.logout();
+      return true;
+    }
+    return false;
     
   }
 }
@@ -490,4 +625,105 @@ var AuthenticationTranslation = {
     Authentication.buildLoginDropdownMenu();
   }
 
+}
+var AuthenticationService = {
+  downloadFile(url, startDownloadCallback, doneDownloadCallback)
+  {
+    let anchor = document.createElement("a");
+    document.body.appendChild(anchor);
+
+    var bearer=null;
+    if(Authentication.hasToken())
+    {
+      
+      //Check if token is expired or not. If is expired it will logout
+      if(Authentication.expirationCheck())
+      {
+        window.location.reload();
+        return;
+      }
+
+      bearer = "Bearer " + Authentication.getToken();
+    }
+
+    //Invokink callback, application should show loading or block button
+    if(startDownloadCallback)
+    {
+        startDownloadCallback();
+    }
+
+    var xhr=new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.responseType = 'arraybuffer';
+   
+    //Adding authorization if token is present
+    if(bearer!=null)
+    {
+      xhr.setRequestHeader("Authorization", bearer);
+    }
+
+    xhr.addEventListener('load',function()
+        {
+        if (xhr.status === 200){
+
+            var arrayBuffer = xhr.response;
+
+            var filename = AuthenticationService.getFilenameFromContentDisposition(xhr);
+
+            AuthenticationService.saveByteArray(filename, arrayBuffer);
+
+            //Invokink callback, application should hide loading or enable button
+            if(doneDownloadCallback)
+            {
+                doneDownloadCallback();
+            }
+        }
+    })
+    xhr.send();
+   
+  },
+  getFilenameFromContentDisposition(xhr)
+  {
+      var filename = "";
+      var disposition = xhr.getResponseHeader('Content-Disposition');
+      if (disposition && disposition.indexOf('filename') !== -1) {
+          if(disposition.split("=").length==2)
+          {
+              filename=disposition.split("=")[1];
+          }
+      }
+      return filename;
+  },
+  saveByteArray(filename, byte) {
+    var blob = new Blob([byte], {type: "octet/stream"});
+    var link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    if(filename!="")
+    {
+        link.download = filename;
+    }                
+    link.click();
+  },
+  isAuthenticated()
+  {
+    return  Authentication.hasToken() && !Authentication.expirationCheck();
+  },
+  getBearer()
+  { 
+    var bearer="";
+    if(this.isAuthenticated())
+    {
+      bearer = "Bearer " + Authentication.getToken();
+    }
+    return bearer;
+  },
+  getToken()
+  { 
+    var token="";
+    if(this.isAuthenticated())
+    {
+      token = Authentication.getToken();
+    }
+    return token;
+  }
 }
