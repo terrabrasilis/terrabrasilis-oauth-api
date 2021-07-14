@@ -1,5 +1,6 @@
 var Authentication = {
-  oauthURL: "http://oauth.dpi.inpe.br/api",
+  oauthBaseURL: "http://oauth.dpi.inpe.br",
+  oauthApiURL: "http://oauth.dpi.inpe.br/api",
   tokenKey: "oauth.obt.inpe.br",
   service: "terrabrasilis",
   scope: "portal:dash:admin",
@@ -47,7 +48,6 @@ var Authentication = {
     var authenticationDiv = $('<div>', {
       id: 'authentication-div',
       frameborder: 0,
-      style: "position: absolute",
       class: "modal-auth",
       tabindex: "-1",
       role: "dialog"
@@ -247,7 +247,7 @@ var Authentication = {
     });
   },
   login(user, pass) {
-    $.ajax(this.oauthURL + "/oauth/auth/login", {
+    $.ajax(this.oauthApiURL + "/oauth/auth/login", {
       type: "POST",
       dataType: 'json',
       data: '{ "username": "' + user + '","password": "' + pass + '" }',
@@ -262,7 +262,7 @@ var Authentication = {
     });
   },
   loadUserInfo(userId, userToken) {
-    $.ajax(this.oauthURL + "/oauth/users/" + userId, {
+    $.ajax(this.oauthApiURL + "/oauth/users/" + userId, {
       type: "GET",
       dataType: 'json',
       headers: {
@@ -281,7 +281,7 @@ var Authentication = {
     });
   },
   loadAppToken(userToken) {
-    $.ajax(this.oauthURL + "/oauth/auth/token?service=" + this.service + "&scope=" + this.scope, {
+    $.ajax(this.oauthApiURL + "/oauth/auth/token?service=" + this.service + "&scope=" + this.scope, {
       type: "GET",
       dataType: 'json',
       headers: {
@@ -301,6 +301,26 @@ var Authentication = {
 //      $('#modal-container-warning').modal('show');
       this.showWarningDiv(true);
       return false;
+    });
+  },
+
+  dropUser(userId, userToken) {
+    $.ajax(this.oauthApiURL + "/oauth/users/" + userId, {
+      type: "DELETE",
+      dataType: 'json',
+      headers: {
+        "Authorization": "Bearer " + userToken
+      },
+      contentType: "application/json",
+    }).done(function (data) {
+      Authentication.logout();
+      Authentication.loginStatusChanged();
+      alert(AuthenticationTranslation.getTranslated('drop-user-ok'));
+    }).fail(function (xhr, status, error) {
+      console.log("Could not reach the API to delete the user: " + error);
+      Authentication.logout();
+      Authentication.loginStatusChanged();
+      alert(AuthenticationTranslation.getTranslated('drop-user-fail'));
     });
   },
 
@@ -425,6 +445,22 @@ var Authentication = {
       let a = $('<a/>',
         {
           class: 'dropdown-auth-item',
+          html: '<span >'+AuthenticationTranslation.getTranslated('change-pass')+'</span>'
+        });
+      a.attr("href", this.oauthBaseURL);
+      a.appendTo(dropDownDiv);
+
+      a = $('<a/>',
+        {
+          class: 'dropdown-auth-item',
+          html: '<span >'+AuthenticationTranslation.getTranslated('drop-user')+'</span>'
+        });
+      a.attr("href", "javascript:Authentication.dropUser();");
+      a.appendTo(dropDownDiv);
+
+      a = $('<a/>',
+        {
+          class: 'dropdown-auth-item',
           html: '<span >'+AuthenticationTranslation.getTranslated('logout')+'</span>'
         });
       a.attr("href", "javascript:Authentication.logout();");
@@ -440,6 +476,13 @@ var Authentication = {
           html: '<span >'+AuthenticationTranslation.getTranslated('login')+'</span>'
         });
       a.attr("href", "javascript:Authentication.showAuthenticationModal();");
+      a.appendTo(dropDownDiv);
+      a = $('<a/>',
+        {
+          class: 'dropdown-auth-item',
+          html: '<span >'+AuthenticationTranslation.getTranslated('reset-pass')+'</span>'
+        });
+      a.attr("href", this.oauthBaseURL);
       a.appendTo(dropDownDiv);
     }
     //Appending to navigation menu default UL
@@ -599,6 +642,11 @@ var AuthenticationTranslation = {
       'password':"Senha",
       'logout':"Sair",
       'login':"Entrar",
+      'reset-pass':'Redefinir senha',
+      'change-pass':'Alterar senha',
+      'drop-user':'Remover conta de usuário',
+      'drop-user-ok':'Conta removida.',
+      'drop-user-fail':'Falhou ao remover a conta.',
       'missing-user-pass':"Usuário ou senha não foram preenchidos!",
       'username-validation':"Entre com o usuário",
       'password-validation':"Entre com a senha"
@@ -614,6 +662,11 @@ var AuthenticationTranslation = {
       'password':"Password",
       'logout':"Logout",
       'login':"Login",
+      'reset-pass':'Reset password',
+      'change-pass':'Change the password',
+      'drop-user':'Remove user account',
+      'drop-user-ok':'User account removed',
+      'drop-user-fail':'Failed to remove account',
       'missing-user-pass':"Missing username or password!",
       'username-validation':"Insert an username",
       'password-validation':"Insert a password"
