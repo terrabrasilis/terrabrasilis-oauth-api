@@ -6,6 +6,7 @@ var Authentication = {
   scope: "portal:dash:admin",
   expiredKey: "expired_token",
   usedInfoKey: "user_info",
+  usedDataKey: "user",
   loginStatusChangedCallback: null,
   terrabrasilisOauthApiURL: "http://terrabrasilis.dpi.inpe.br/oauth-api/",
   expirationGuardInterval: null,
@@ -253,7 +254,7 @@ var Authentication = {
       data: '{ "username": "' + user + '","password": "' + pass + '" }',
       contentType: "application/json",
     }).done(function (data) {
-
+      Authentication.setUserData(JSON.stringify(data));
       Authentication.loadAppToken(data.access_token);
       
     }).fail(function (xhr, status, error) {
@@ -304,7 +305,10 @@ var Authentication = {
     });
   },
 
-  dropUser(userId, userToken) {
+  dropUser() {
+    let dataUser=Authentication.getUserData();
+    let userId=dataUser.user_id;
+    let userToken=dataUser.access_token;
     $.ajax(this.oauthApiURL + "/oauth/users/" + userId, {
       type: "DELETE",
       dataType: 'json',
@@ -348,6 +352,12 @@ var Authentication = {
   },
   setUserInfo(value) {
     this.setKey(this.usedInfoKey, value);
+  },
+  setUserData(value){
+    this.setKey(this.usedDataKey, value);
+  },
+  getUserData(){
+    return JSON.parse(this.getValueByKey(this.usedDataKey));
   },
   logout() {
     this.removeToken();
