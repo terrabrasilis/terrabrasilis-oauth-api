@@ -307,23 +307,19 @@ var Authentication = {
 
   dropUser() {
     let dataUser=Authentication.getUserData();
-    let userId=dataUser.user_id;
-    let userToken=dataUser.access_token;
-    $.ajax(this.oauthApiURL + "/oauth/users/" + userId, {
+    $.ajax(this.oauthApiURL + "/oauth/users/" + dataUser.user_id, {
       type: "DELETE",
       dataType: 'json',
       headers: {
-        "Authorization": "Bearer " + userToken
+        "Authorization": "Bearer " + dataUser.access_token
       },
       contentType: "application/json",
     }).done(function (data) {
       Authentication.logout();
-      Authentication.loginStatusChanged();
       alert(AuthenticationTranslation.getTranslated('drop-user-ok'));
     }).fail(function (xhr, status, error) {
       console.log("Could not reach the API to delete the user: " + error);
       Authentication.logout();
-      Authentication.loginStatusChanged();
       alert(AuthenticationTranslation.getTranslated('drop-user-fail'));
     });
   },
