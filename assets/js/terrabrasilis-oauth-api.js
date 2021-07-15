@@ -306,22 +306,24 @@ var Authentication = {
   },
 
   dropUser() {
-    let dataUser=Authentication.getUserData();
-    $.ajax(this.oauthApiURL + "/oauth/users/" + dataUser.user_id, {
-      type: "DELETE",
-      dataType: 'json',
-      headers: {
-        "Authorization": "Bearer " + dataUser.access_token
-      },
-      contentType: "application/json",
-    }).done(function (data) {
-      Authentication.logout();
-      alert(AuthenticationTranslation.getTranslated('drop-user-ok'));
-    }).fail(function (xhr, status, error) {
-      console.log("Could not reach the API to delete the user: " + error);
-      Authentication.logout();
-      alert(AuthenticationTranslation.getTranslated('drop-user-fail'));
-    });
+    if(confirm(AuthenticationTranslation.getTranslated('drop-user-confirm'))) {
+      let dataUser=Authentication.getUserData();
+      $.ajax(this.oauthApiURL + "/oauth/users/" + dataUser.user_id, {
+        type: "DELETE",
+        dataType: 'json',
+        headers: {
+          "Authorization": "Bearer " + dataUser.access_token
+        },
+        contentType: "application/json",
+      }).done(function (data) {
+        Authentication.logout();
+        alert(AuthenticationTranslation.getTranslated('drop-user-ok'));
+      }).fail(function (xhr, status, error) {
+        console.log("Could not reach the API to delete the user: " + error);
+        Authentication.logout();
+        alert(AuthenticationTranslation.getTranslated('drop-user-fail'));
+      });
+    }
   },
 
   setToken(value) {
@@ -657,6 +659,7 @@ var AuthenticationTranslation = {
       'drop-user':'Remover conta de usuário',
       'drop-user-ok':'Conta removida.',
       'drop-user-fail':'Falhou ao remover a conta.',
+      'drop-user-confirm':'A conta será removida permanentemente. Confirma?',
       'missing-user-pass':"Usuário ou senha não foram preenchidos!",
       'username-validation':"Entre com o usuário",
       'password-validation':"Entre com a senha"
@@ -677,6 +680,7 @@ var AuthenticationTranslation = {
       'drop-user':'Remove user account',
       'drop-user-ok':'User account removed',
       'drop-user-fail':'Failed to remove account',
+      'drop-user-confirm':'The account will be permanently removed. Do you confirm?',
       'missing-user-pass':"Missing username or password!",
       'username-validation':"Insert an username",
       'password-validation':"Insert a password"
