@@ -4,7 +4,10 @@ LABEL mantainer="Claudio Bogossian <claudio.bogossian@gmail.com>"
 
 WORKDIR /app
 
-COPY . .
+COPY ./*.json /app/
+COPY ./index.js /app/
+COPY src/ /app/src/
+COPY assets/ /app/assets/
 ENV NPM_CONFIG_LOGLEVEL warn
 RUN npm install  -g yarn --force \
 && yarn install --production \
@@ -16,8 +19,5 @@ ENV PORT 9000
 EXPOSE 9000
 ENV FILES_PATH /data/oauth-api
 VOLUME ["${FILES_PATH}","/logs"]
-
-# Show current folder structure in logs
-RUN ls -al -R
 
 CMD ["pm2-runtime", "--env", "production", "start", "pm2.json"]
