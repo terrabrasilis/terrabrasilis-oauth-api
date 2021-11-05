@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VERSION=$(cat package.json | grep -oP '(?<="version": ")[^"]*')
+VERSION=$(git describe --tags --abbrev=0)
 
-docker build -t terrabrasilis/terrabrasilis-oauth-api:v$VERSION -f Dockerfile .
+docker build -t terrabrasilis/terrabrasilis-oauth-api:$VERSION -f Dockerfile .
 
-docker push terrabrasilis/terrabrasilis-oauth-api:v$VERSION
+docker push terrabrasilis/terrabrasilis-oauth-api:$VERSION

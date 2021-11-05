@@ -4,17 +4,13 @@ LABEL mantainer="Claudio Bogossian <claudio.bogossian@gmail.com>"
 
 WORKDIR /app
 
-COPY package.json .
-ENV NPM_CONFIG_LOGLEVEL warn
-RUN npm install  -g yarn --force
-RUN yarn install --production
-
 COPY . .
-
-# Install app dependencies
-RUN npm install pm2 -g
-RUN pm2 install pm2-server-monit
-RUN pm2 install pm2-logrotate
+ENV NPM_CONFIG_LOGLEVEL warn
+RUN npm install  -g yarn --force \
+&& yarn install --production \
+&& npm install pm2 -g \
+&& pm2 install pm2-server-monit \
+&& pm2 install pm2-logrotate
 
 ENV PORT 9000
 EXPOSE 9000
