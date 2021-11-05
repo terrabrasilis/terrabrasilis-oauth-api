@@ -15,6 +15,9 @@ RUN npm install  -g yarn --force \
 && pm2 install pm2-server-monit \
 && pm2 install pm2-logrotate
 
+# add curl for use in swarm health test
+RUN apk --no-cache add curl
+
 ENV PORT 9000
 EXPOSE 9000
 ENV FILES_PATH /data/oauth-api
