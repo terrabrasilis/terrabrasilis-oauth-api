@@ -8,14 +8,16 @@ var Authentication = {
   usedInfoKey: "user_info",
   usedDataKey: "user",
   loginStatusChangedCallback: null,
-  terrabrasilisOauthApiURL: "http://terrabrasilis.dpi.inpe.br/oauth-api/",
+  internalValidationOauthApiURL: "/oauth-api/",
   expirationGuardInterval: null,
   validationData: null,
   validationInterval: 300000,
   ul2append: "#navigationBarUL",
 
-  init(language, loginStatusChanged)
+  init(language, loginStatusChanged, serverURL)
   {
+    if(serverURL) this.serverURL=serverURL;
+    else this.serverURL=this.internalValidationOauthApiURL;
     this.loginStatusChangedCallback=loginStatusChanged;
     AuthenticationTranslation.init(language);
     this.buildLoginDropdownMenu();
@@ -224,7 +226,7 @@ var Authentication = {
   },
   validateToken(userToken)
   {
-    $.ajax(this.terrabrasilisOauthApiURL + "/validate/" + this.service, {
+    $.ajax(this.internalValidationOauthApiURL + "validate/" + this.service, {
       type: "GET",
       dataType: 'json',
       headers: {
