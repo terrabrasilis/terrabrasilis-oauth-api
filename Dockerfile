@@ -1,6 +1,7 @@
 FROM node:12-alpine
 
-LABEL mantainer="Claudio Bogossian <claudio.bogossian@gmail.com>"
+LABEL author="Claudio Bogossian <claudio.bogossian@gmail.com>"
+LABEL mantainer="Andre Carvalho <andre.carvalho@inpe.br>"
 
 WORKDIR /app
 
