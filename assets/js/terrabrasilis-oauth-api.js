@@ -775,7 +775,7 @@ var AuthenticationService = {
   },
   isAuthenticated()
   {
-    return  Authentication.hasToken() && !Authentication.expirationCheck();
+    return  Authentication.hasToken();
   },
   getBearer()
   { 
