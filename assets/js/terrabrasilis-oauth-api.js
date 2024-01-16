@@ -436,7 +436,7 @@ var Authentication = {
     }
 
     //Adding image logged or unlogged
-    let imagetag = '<img id="login"  style="width:28px; height:28px; border-radius:50%" alt="Login" src="'+userImageUrl+'" title="Autentique">';
+    let imagetag = '<img id="login"  style="width:28px; height:28px; border-radius:50%" alt="Login" src="'+userImageUrl+'" title="'+AuthenticationTranslation.getTranslated('autheticate-title')+'">';
     a.append('<i class="material-icons iconmobile">assignment </i><span id="maps-sup">'+imagetag+'</span>');
     a.appendTo(li);
   
@@ -667,7 +667,8 @@ var AuthenticationTranslation = {
       'drop-user-confirm':'A conta será removida permanentemente. Confirma?',
       'missing-user-pass':"Usuário ou senha não foram preenchidos!",
       'username-validation':"Entre com o usuário",
-      'password-validation':"Entre com a senha"
+      'password-validation':"Entre com a senha",
+      'autheticate-title':"Usuário"
 
 
     },
@@ -688,7 +689,8 @@ var AuthenticationTranslation = {
       'drop-user-confirm':'The account will be permanently removed. Do you confirm?',
       'missing-user-pass':"Missing username or password!",
       'username-validation':"Insert an username",
-      'password-validation':"Insert a password"
+      'password-validation':"Insert a password",
+      'autheticate-title':"User"
     }
   },
   changeLanguage(lang)
