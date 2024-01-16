@@ -16,6 +16,9 @@ var Authentication = {
 
   init(language, loginStatusChanged, serverURL)
   {
+    this.oauthBaseURL = $(location).attr('origin') + "/oauth/"
+    this.oauthApiURL = this.oauthBaseURL + "/api"
+
     if(serverURL) this.serverURL=serverURL;
     else this.serverURL=this.internalValidationOauthApiURL;
     this.loginStatusChangedCallback=loginStatusChanged;
