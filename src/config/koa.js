@@ -25,7 +25,7 @@ export default function configKoa (app) {
     passthrough: true
   }))
 
-  app.use((ctx, next) => {
+  app.use(async (ctx, next) => {
     const error = get(ctx, 'state.jwtOriginalError.message')
     const IS_FORBIDDEN = includes(error, 'invalid') || includes(error, 'expired')
 
@@ -36,7 +36,8 @@ export default function configKoa (app) {
     }
 
     ctx.body = ctx.request.body
-    return next()
+    ctx.config = config;    
+    return await next()
   })
 
   app.on('error', err => console.error(err))

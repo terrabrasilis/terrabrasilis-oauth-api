@@ -1,0 +1,26 @@
+{
+	"proxy":[
+		{
+			"host": "https://pve9.dpi.inpe.br/geoserver/",
+			"user": "admin",
+			"password":"!@12qwasZX"
+		},
+		{
+			"host": "terrabrasilis.dpi.inpe.br",
+			"user": "teste1",
+			"password":"teste2"
+		}
+		,
+		{
+			"host": "http://localhost/geoserver/",
+			"user": "admin",
+			"password":"geoserver"
+		},
+		{
+			"host": "pmsv-hom.funcate.org.br",
+			"user": "teste1",
+			"password":"teste2"
+		}
+	]	
+}
+
