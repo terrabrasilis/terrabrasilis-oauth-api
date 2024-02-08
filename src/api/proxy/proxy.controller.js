@@ -31,8 +31,8 @@ export async function index (ctx, next)
       {
         ctx.status = 200;
         var fs = require('fs');
-        //ctx.res.pipe(response.data.read());
-        ctx.body= fs.createReadStream('/tmp/test.png');
+        //ctx.body= fs.createReadStream('/tmp/test.png');
+        ctx.body = response.data.read();
         ctx.res.setHeader("Content-Type", response.contentType);
       }).catch((data)=>
       {
@@ -85,15 +85,6 @@ function getProxyConfig(ctx, url)
 
     if(url.includes(proxyCfg.host))
     { 
-      //const nodeURL = require('node:url');
-      
-      // if(proxyCfg.user && proxyCfg.password)
-      // {
-      //   const urlOBJ = new URL(url); 
-      //   urlOBJ.username = proxyCfg.user;
-      //   urlOBJ.password = proxyCfg.password;
-      //   url = urlOBJ.toString();
-      // }
       return proxyCfg;
     }
   } 
@@ -103,7 +94,7 @@ function getProxyConfig(ctx, url)
 }
 async function getData(url, credentials)
 {
-  return new Promise((resolve) =>   
+  return new Promise((resolve, reject) =>   
   {
     let driver = null;
     
@@ -120,39 +111,15 @@ async function getData(url, credentials)
     let headers = {}
     if(credentials)
     {
-      //driver.ClientRequest.setHeader("Authorization", "Basic " + credentials);
       headers= {
         'Authorization': "Basic " + credentials
       }
-
     }
-
-    // const urlOBJ = new URL(url); 
 
     const options = {
       headers: headers
     }
-    
-    // try{
-    //   driver
-    //   .request(options, resp => {
-    //     // log the data
-    //     resp.on("data", d => {
-    //       process.stdout.write(d);
-    //     });
-    //     resp.on("end", d => {
-    //       resolve(data);
-    //     });
-    //   })
-    //   .on("error", err => {
-    //       console.log("Error: " + err.message);      
-    //       resolve(err);
-    //   });
-    // }
-    // catch(ex)
-    // {
-    //   console.log(ex);
-    // }
+
     const Stream = require('stream').Transform
     
     driver.get(url, options, async (resp) => 
@@ -171,10 +138,13 @@ async function getData(url, credentials)
       });
     
       resp.on('end', () => {        
-        var fs = require('fs');
-        fs.writeFileSync("/tmp/test.png", responseData.data.read())
+        //var fs = require('fs');
+        //fs.writeFileSync("/tmp/test.png", responseData.data.read())
   
         responseData.contentType = resp.headers['content-type'];
+
+        responseData.data.end();
+
         resolve(responseData);        
       });    
 
@@ -182,7 +152,7 @@ async function getData(url, credentials)
       console.log("Error: " + err.message);      
       responseData.data = err;
       responseData.contentType = "plain/text";
-      resolve(err);
+      reject(err);
     });
       
     });
