@@ -3,7 +3,7 @@
 		{
 			"host": "https://pve9.dpi.inpe.br/geoserver/",
 			"user": "admin",
-			"password":"!@12qwasZX"
+			"password":"geoserver"
 		},
 		{
 			"host": "terrabrasilis.dpi.inpe.br",
