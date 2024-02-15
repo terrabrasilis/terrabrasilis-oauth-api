@@ -8,7 +8,8 @@ const path = require('path');
 export async function index (ctx, next) 
 {  
 
-  let user = validateUser(ctx);
+  let user = validateUser(ctx);  
+  //user.authenticated = true;  
 
   if(user && user.authenticated)
   {
@@ -22,6 +23,7 @@ export async function index (ctx, next)
     }
     else
     {
+      url = ctx.querystring.replace("url=", "");
   
       let proxyConfig = getProxyConfig(ctx, url); 
   
