@@ -14,9 +14,7 @@ export async function index (ctx, next)
   if(user && user.authenticated)
   {
     let url = get(ctx.query, 'url')
-  
-    console.log(url);
-  
+
     if(!url)
     {
      next();
@@ -24,7 +22,12 @@ export async function index (ctx, next)
     else
     {
       url = ctx.querystring.replace("url=", "");
-  
+
+      if(url.includes("?")==false)
+      {
+        url=url.replace(/&/, '?');
+      }
+
       let proxyConfig = getProxyConfig(ctx, url); 
   
       if(proxyConfig)
