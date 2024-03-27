@@ -1,7 +1,9 @@
 var Authentication = {
-  oauthBaseURL: "http://oauth.dpi.inpe.br",
-  oauthApiURL: "http://oauth.dpi.inpe.br/api",
-  tokenKey: "oauth.obt.inpe.br",
+  oauthBaseURL: "",
+  oauthBasePATH: "/security",
+  oauthApiURL: "",
+  oauthApiPATH: "/",
+  tokenKey: "terrabrasilis.dpi.inpe.br",
   service: "terrabrasilis",
   scope: "portal:dash:admin",
   expiredKey: "expired_token",
@@ -16,8 +18,8 @@ var Authentication = {
 
   init(language, loginStatusChanged, serverURL)
   {
-    this.oauthBaseURL = $(location).attr('origin') + "/oauth/"
-    this.oauthApiURL = this.oauthBaseURL + "/api"
+    this.oauthBaseURL = $(location).attr('origin') + this.oauthBasePATH;
+    this.oauthApiURL = this.oauthBaseURL + this.oauthApiPATH;
 
     if(serverURL) this.serverURL=serverURL;
     else this.serverURL=this.internalValidationOauthApiURL;
@@ -240,20 +242,35 @@ var Authentication = {
       console.log("User authentication token is valid");
       Authentication.validationData = data;
       Authentication.configureExpirationGuard();
-    }).fail(function (xhr, status, error) {
+      Authentication.showAuhenticationDiv(false);
+      Authentication.buildLoginDropdownMenu();
+      Authentication.removeExpiredToken();      
+    }).fail(function (xhr, status, error) 
+    {
+      Authentication.handleError(AuthenticationTranslation.getTranslated('tokenValidationFailed'));            
       console.log("User authentication token is invalid, logging out...");
+      if(xhr.responseJSON)
+      {
+        console.log("Error: " + xhr.responseJSON.error);
+        if(xhr.responseJSON.exception)
+        { 
+          console.log("Exception: " + xhr.responseJSON.exception.name + " - " + xhr.responseJSON.exception.message);
+        }        
+      }
+      
+      
       Authentication.logout();
     });
   },
   handleError(message)
   {
     $('#loginAlert').html(message);
-    $("#loginAlert").fadeTo(2000, 500).slideUp(500, function() {
+    $("#loginAlert").fadeTo(8000, 500).slideUp(500, function() {
       $("#loginAlert").slideUp(500);
     });
   },
   login(user, pass) {
-    $.ajax(this.oauthApiURL + "/oauth/auth/login", {
+    $.ajax(this.oauthApiURL + "oauth/auth/login", {
       type: "POST",
       dataType: 'json',
       data: '{ "username": "' + user + '","password": "' + pass + '" }',
@@ -268,7 +285,7 @@ var Authentication = {
     });
   },
   loadUserInfo(userId, userToken) {
-    $.ajax(this.oauthApiURL + "/oauth/users/" + userId, {
+    $.ajax(this.oauthApiURL + "oauth/users/" + userId, {
       type: "GET",
       dataType: 'json',
       headers: {
@@ -278,16 +295,16 @@ var Authentication = {
     }).done(function (data) {
       Authentication.setUserInfo(JSON.stringify(data));
       //$('#authentication-div').modal('hide');
-      Authentication.showAuhenticationDiv(false);
-      Authentication.buildLoginDropdownMenu();
-      Authentication.removeExpiredToken();
+      //Authentication.showAuhenticationDiv(false);
+      //Authentication.buildLoginDropdownMenu();
+      //Authentication.removeExpiredToken();
     }).fail(function (xhr, status, error) {
       console.log("Could not reach the API to obtain the user info: " + error);
       Authentication.logout();
     });
   },
   loadAppToken(userToken) {
-    $.ajax(this.oauthApiURL + "/oauth/auth/token?service=" + this.service + "&scope=" + this.scope, {
+    $.ajax(this.oauthApiURL + "oauth/auth/token?service=" + this.service + "&scope=" + this.scope, {
       type: "GET",
       dataType: 'json',
       headers: {
@@ -313,7 +330,7 @@ var Authentication = {
   dropUser() {
     if(confirm(AuthenticationTranslation.getTranslated('drop-user-confirm'))) {
       let dataUser=Authentication.getUserData();
-      $.ajax(this.oauthApiURL + "/oauth/users/" + dataUser.user_id, {
+      $.ajax(this.oauthApiURL + "oauth/users/" + dataUser.user_id, {
         type: "DELETE",
         dataType: 'json',
         headers: {
@@ -653,6 +670,7 @@ var AuthenticationTranslation = {
     'pt-br':
     {
       'authenticationFailed':'O nome de usuário ou senha está incorreto. Verifique se CAPS LOCK está ativado. Se você receber essa mensagem novamente, entre em contato com o administrador do sistema para garantir que você tenha permissão para logar no portal.',
+      'tokenValidationFailed':'Não foi possível validar a permissão do Usuário a esta aplicação.',      
       'submitLogin':"Entrar",
       'submitCancel':"Cancelar",
       'username':"Usuário",
@@ -675,6 +693,7 @@ var AuthenticationTranslation = {
     'en':
     {
       'authenticationFailed':'The username or password is wrong. Verify if CAPS LOCK is enable. If you receive this message again, please contact the system administrator to ensure that you have permission to login in portal.',
+      'tokenValidationFailed':'Unable to validate user permission to this application.',      
       'submitLogin':"Login",
       'submitCancel':"Cancel",
       'username':"Username",

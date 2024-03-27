@@ -22,8 +22,9 @@ export default function configKoa (app) {
 
   app.use(jwt({
     secret: config.secret,
-    passthrough: true
-  }))
+    passthrough: true,
+    clockTolerance: 600000 //10 min
+    }))
 
   app.use(async (ctx, next) => {
     const error = get(ctx, 'state.jwtOriginalError.message')
