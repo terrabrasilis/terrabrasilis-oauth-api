@@ -1,5 +1,6 @@
 var Authentication = {
   oauthBaseURL: "",
+  oauthAppURL: "",
   oauthBasePATH: "/security",
   oauthApiURL: "",
   oauthApiPATH: "/",
@@ -20,6 +21,7 @@ var Authentication = {
   {
     this.oauthBaseURL = $(location).attr('origin') + this.oauthBasePATH;
     this.oauthApiURL = this.oauthBaseURL + this.oauthApiPATH;
+    this.oauthAppURL = $(location).attr('origin') + '/app' + this.oauthBasePATH;
 
     if(serverURL) this.serverURL=serverURL;
     else this.serverURL=this.internalValidationOauthApiURL;
@@ -481,7 +483,7 @@ var Authentication = {
           class: 'dropdown-auth-item',
           html: '<span >'+AuthenticationTranslation.getTranslated('change-pass')+'</span>'
         });
-      a.attr("href", this.oauthBaseURL);
+      a.attr("href", this.oauthAppURL);
       a.appendTo(dropDownDiv);
 
       a = $('<a/>',
