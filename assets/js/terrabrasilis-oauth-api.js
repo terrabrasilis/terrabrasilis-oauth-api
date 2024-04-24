@@ -511,13 +511,13 @@ var Authentication = {
         });
       a.attr("href", "javascript:Authentication.showAuthenticationModal();");
       a.appendTo(dropDownDiv);
-      a = $('<a/>',
-        {
-          class: 'dropdown-auth-item',
-          html: '<span >'+AuthenticationTranslation.getTranslated('reset-pass')+'</span>'
-        });
-      a.attr("href", this.oauthBaseURL);
-      a.appendTo(dropDownDiv);
+      // a = $('<a/>',
+      //   {
+      //     class: 'dropdown-auth-item',
+      //     html: '<span >'+AuthenticationTranslation.getTranslated('reset-pass')+'</span>'
+      //   });
+      // a.attr("href", this.oauthBaseURL);
+      // a.appendTo(dropDownDiv);
     }
     //Appending to navigation menu default UL
 
