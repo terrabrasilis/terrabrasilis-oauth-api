@@ -23,7 +23,7 @@ export default function configKoa (app) {
   app.use(jwt({
     secret: config.secret,
     passthrough: true,
-    clockTolerance: 600000 //10 min
+    clockTolerance: 60000000 //10 min
     }))
 
   app.use(async (ctx, next) => {

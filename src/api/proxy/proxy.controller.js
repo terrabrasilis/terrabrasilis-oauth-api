@@ -27,6 +27,7 @@ export async function index (ctx, next)
       {
         url=url.replace(/&/, '?');
       }
+      url=replaceLocalhost(url);
 
       let proxyConfig = getProxyConfig(ctx, url); 
   
@@ -36,7 +37,7 @@ export async function index (ctx, next)
         if(proxyConfig.user && proxyConfig.password)
         {
           credentials = Buffer.from(proxyConfig.user + ':' + proxyConfig.password).toString('base64');
-        }      
+        }   
   
         await getData(url, credentials).then((response)=>
         {
@@ -191,6 +192,15 @@ function validateUser(ctx)
   }
   return user;
   
+}
+
+function replaceLocalhost(url)
+{
+  if(url.includes("http://localhost"))
+  {
+    return url.replace("http://localhost", "https://terrabrasilis.dpi.inpe.br");
+  }
+  return url;
 }
 
 
