@@ -1,7 +1,7 @@
 var Authentication = {
   oauthBaseURL: "",
   oauthAppURL: "",
-  oauthBasePATH: "/security",
+  oauthBasePATH: "/security/",
   oauthApiURL: "",
   oauthApiPATH: "/",
   tokenKey: "terrabrasilis.dpi.inpe.br",
