@@ -1,8 +1,8 @@
 import path from 'path'
-import {Utils} from '../api/utils'
+import { Utils } from '../api/utils'
 
 const config = {
-  secret: Utils.readDockerSecret(process.env.JWT_SECRET) || 'secret',
+  jwtPublicKey: Utils.readDockerSecret(process.env.JWT_PUBLIC_KEY) || 'public',
   env: process.env.NODE_ENV || 'dev',
   health: path.normalize(__dirname + '../../'),
   ip: process.env.IP || '0.0.0.0',

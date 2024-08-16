@@ -4,6 +4,15 @@ var Authentication = {
   oauthBasePATH: "/security/",
   oauthApiURL: "",
   oauthApiPATH: "/",
+
+  keycloakBaseURL: "",
+  keycloakBasePATH: "/app/security/",
+  keycloakApiURL: "",
+  keycloakRealmPath: "realms/terrabrasilis-realm/",
+  keycloakTokenPath: "protocol/openid-connect/token",
+  keycloakUserInfoPath:"protocol/openid-connect/userinfo",
+  keycloakClientId: "terrabrasilis-apps",
+  
   tokenKey: "terrabrasilis.dpi.inpe.br",
   service: "terrabrasilis",
   scope: "portal:dash:admin",
@@ -19,9 +28,9 @@ var Authentication = {
 
   init(language, loginStatusChanged, serverURL)
   {
-    this.oauthBaseURL = $(location).attr('origin') + this.oauthBasePATH;
-    this.oauthApiURL = this.oauthBaseURL + this.oauthApiPATH;
-    this.oauthAppURL = $(location).attr('origin') + '/app' + this.oauthBasePATH;
+    this.keycloakBaseURL = $(location).attr('origin') + this.keycloakBasePATH;
+    //this.oauthApiURL = this.oauthBaseURL + this.oauthApiPATH;
+    //this.oauthAppURL = $(location).attr('origin') + '/app' + this.oauthBasePATH; // Antigo oauth app para trocar a senha
 
     if(serverURL) this.serverURL=serverURL;
     else this.serverURL=this.internalValidationOauthApiURL;
@@ -272,22 +281,37 @@ var Authentication = {
     });
   },
   login(user, pass) {
-    $.ajax(this.oauthApiURL + "oauth/auth/login", {
+
+    let loginData = new URLSearchParams();
+    loginData.append("client_id", this.keycloakClientId);
+    loginData.append("scope", "openid");
+    loginData.append("grant_type", "password");
+    loginData.append("username", user);
+    loginData.append("password", pass);
+
+    $.ajax(this.keycloakBaseURL + this.keycloakRealmPath + this.keycloakTokenPath, {
       type: "POST",
-      dataType: 'json',
-      data: '{ "username": "' + user + '","password": "' + pass + '" }',
-      contentType: "application/json",
+      processData: false,
+      body: loginData,
+      data: loginData,
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      contentType: 'application/x-www-form-urlencoded; charset=utf-8',
     }).done(function (data) {
       Authentication.setUserData(JSON.stringify(data));
-      Authentication.loadAppToken(data.access_token);
+      //Authentication.loadAppToken(data.access_token);
+      var myToken = data.access_token;
+      Authentication.setToken(myToken);
+      Authentication.loadUserInfo(myToken);
+      Authentication.validateToken(myToken);
+      Authentication.loginStatusChanged();
       
     }).fail(function (xhr, status, error) {
       console.log("Could not reach the API to authenticate the user: " + error);
       Authentication.handleError(AuthenticationTranslation.getTranslated('authenticationFailed'));
     });
   },
-  loadUserInfo(userId, userToken) {
-    $.ajax(this.oauthApiURL + "oauth/users/" + userId, {
+  loadUserInfo(userToken) {
+    $.ajax(this.keycloakBaseURL + this.keycloakRealmPath + this.keycloakUserInfoPath, {
       type: "GET",
       dataType: 'json',
       headers: {
@@ -304,30 +328,7 @@ var Authentication = {
       console.log("Could not reach the API to obtain the user info: " + error);
       Authentication.logout();
     });
-  },
-  loadAppToken(userToken) {
-    $.ajax(this.oauthApiURL + "oauth/auth/token?service=" + this.service + "&scope=" + this.scope, {
-      type: "GET",
-      dataType: 'json',
-      headers: {
-        "Authorization": "Bearer " + userToken
-      },
-      contentType: "application/json",
-    }).done(function (data) {
-      var myToken = data.access_token;
-      Authentication.setToken(myToken);
-      Authentication.loadUserInfo(data.user_id, userToken);
-      Authentication.validateToken(myToken);
-      Authentication.loginStatusChanged();
-
-      return true;
-    }).fail(function (xhr, status, error) {
-      console.log("Could not reach the API to obtain App Token: " + error);
-//      $('#modal-container-warning').modal('show');
-      this.showWarningDiv(true);
-      return false;
-    });
-  },
+  },  
 
   dropUser() {
     if(confirm(AuthenticationTranslation.getTranslated('drop-user-confirm'))) {

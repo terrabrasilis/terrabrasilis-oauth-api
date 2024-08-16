@@ -1,6 +1,7 @@
-import health from './health';
-import validate from './validate';
 import getoauthjs from './getoauthjs';
+import health from './health';
+import jwtFilter from './jwt-filter';
 import proxy from './proxy';
+import validate from './validate';
 
-export {health, validate, getoauthjs, proxy}
+export { getoauthjs, health, jwtFilter, proxy, validate };

@@ -1,12 +1,10 @@
 'use strict'
 
-import config from './index'
-import morgan from 'koa-morgan'
-import parser from 'koa-bodyparser'
 import cors from '@koa/cors'
+import parser from 'koa-bodyparser'
 import compress from 'koa-compress'
-import jwt from 'koa-jwt'
-import { get, includes } from 'lodash'
+import morgan from 'koa-morgan'
+import config from './index'
 
 
 export default function configKoa (app) {
@@ -20,21 +18,14 @@ export default function configKoa (app) {
     strict: false
   }))
 
-  app.use(jwt({
-    secret: config.secret,
-    passthrough: true,
-    clockTolerance: 60000000 //10 min
-    }))
+  // app.use(jwt({
+  //   secret: config.secret,
+  //   passthrough: true,
+  //   clockTolerance: 60000000, //10 min,
+  //   algorithms: 'RS256'
+  //   }))
 
   app.use(async (ctx, next) => {
-    const error = get(ctx, 'state.jwtOriginalError.message')
-    const IS_FORBIDDEN = includes(error, 'invalid') || includes(error, 'expired')
-
-    if (IS_FORBIDDEN) {
-      ctx.status = 401
-      ctx.body = { error }
-      return
-    }
 
     ctx.body = ctx.request.body
     ctx.config = config;    

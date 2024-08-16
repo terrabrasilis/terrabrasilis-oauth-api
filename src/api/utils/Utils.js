@@ -1,5 +1,4 @@
 import fs from 'fs'
-import constants from './constants'
   
 const Utils = {
   readDockerSecret(filePath) {
@@ -20,6 +19,20 @@ const Utils = {
     } catch (e) { console.error('File', filePath, ' does not exists') }
 
     return fileExists
+  },
+  getAuthorizationTokenFromHeaders(headers)
+  {
+    let authorization = headers.authorization;
+    if(authorization.includes(" "))
+    {
+      let token = authorization.split(" ")[1];
+      return token;
+    }
+    else
+    {
+      return false;
+    }
+    
   }
 
 }
