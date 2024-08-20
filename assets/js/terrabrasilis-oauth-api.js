@@ -474,7 +474,7 @@ var Authentication = {
       $('<a/>',
         {
           class: 'dropdown-auth-item',
-          html: '<b style="color:#6c757d;">' + info.name + ' / ' + info.institution + '</b>'
+          html: '<b style="color:#6c757d;">' + info.name + ' / ' + info.preferred_username + '</b>'
         }).appendTo(dropDownDiv);
 
       let a = $('<a/>',

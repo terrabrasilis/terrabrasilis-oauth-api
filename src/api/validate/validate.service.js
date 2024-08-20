@@ -72,6 +72,7 @@ const Service = {
     let userId = "";
     let userLogin = "";
     let userEmail = "";
+    let userName = "";
     let clientId = "";
     let resourceAccess = "";
 
@@ -88,14 +89,14 @@ const Service = {
 
     console.log("--- User validation ---");
     console.log("{");
-    console.log(" User id: " + user.jwt.sub);
-    console.log(" User login: " + user.jwt.preferred_username);
-    console.log(" User name: " + user.jwt.name);
-    console.log(" User email: " + user.jwt.email);
-    console.log(" Client Id: " + user.jwt.azp);
+    console.log(" User id: " + userId);
+    console.log(" User login: " + userLogin);
+    console.log(" User name: " + userName);
+    console.log(" User email: " + userEmail);
+    console.log(" Client Id: " + clientId);
     console.log(" Expiration Issued At: " + user.issuedAtDate);
     console.log(" Expiration Date: " + user.expirationDate);
-    console.log(" Resource Access Roles: " + JSON.stringify(user.jwt.resource_access));
+    console.log(" Resource Access Roles: " + JSON.stringify(resourceAccess));
     console.log(" Authenticated: " + user.authenticated);
     console.log(" Error message: " + user.error);
     console.log(" Requested Resource Role: " + user.requestedResourceRole);
