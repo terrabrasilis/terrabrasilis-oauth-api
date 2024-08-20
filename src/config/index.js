@@ -8,7 +8,9 @@ const config = {
   ip: process.env.IP || '0.0.0.0',
   port: process.env.PORT || 9002,
   logType: process.env.LOGTYPE || 'dev',
+  oauthConfigFile: process.env.OAUTH_CONFIG_FILE,
   proxyConfigFile: process.env.PROXY_CONFIG_FILE,
+  filterPassThrough: ["/assets", "/getoauthjs"],
   debug: false
 }
 

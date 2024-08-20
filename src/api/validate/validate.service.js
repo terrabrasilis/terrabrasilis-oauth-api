@@ -4,18 +4,15 @@ const Service = {
    * Validate token values to checks if the token is still valid for the expiration date and if compatible with the requested resource
    * @param {*} expiration Time from Python in Seconds
    */
-  validate(jwtUser, resource) {
+  validate(jwtUser, clientId, requestedRole) {
 
     var user={
       expirationDate : null,
       issuedAtDate : null,
-      id : null,
-      requestedResource : resource,
-      accessType : null,
-      accessName : null,
-      accessAction : null,
+      jwt : jwtUser,      
       authenticated : false,
-      token : ''
+      requestedResourceRole: requestedRole,
+      error: ""
     }
 
     if(jwtUser)
@@ -23,18 +20,16 @@ const Service = {
       user.expirationDate = new Date(jwtUser.exp * 1000);
       user.issuedAtDate = new Date(jwtUser.iat * 1000);
       user.id = jwtUser.user_id;
-      user.requestedResource = resource;
-      user.accessType = jwtUser.access[0].type;
-      user.accessName = jwtUser.access[0].name;
-      user.accessAction = jwtUser.access[0].actions[0];
-      user.authenticated = false;
-      user.token = '';
+
+      // user.clientRoles = jwtUser.access[0].name;
+      // user.authenticated = false;
+      // user.token = '';
       
       var currentDate = new Date();
 
       //Comparation in milliseconds
       if (currentDate.getTime() < user.expirationDate.getTime()) {
-        if (this.validateUserPermissionToAction(user)) {
+        if (this.validateUserPermissionToAction(user, clientId, requestedRole)) {
           user.authenticated = true;
         }
         else {
@@ -53,12 +48,20 @@ const Service = {
  * Get from the oauth server the permited scope for user and validate the request resource
  * @param {*} user 
  */
-  validateUserPermissionToAction(user)
+  validateUserPermissionToAction(user, clientId, requestedRole)
   {
-    /*
-     TODO: we don't need to validade permission on this group of application yet. If the user is authenticated (not expired) it's permited.
-    */
-    return true;
+    if(user.jwt.resource_access[clientId] && user.jwt.resource_access[clientId].roles)
+    {
+      let foundRequestedRole = false;
+      user.jwt.resource_access[clientId].roles.forEach(role => {
+        if(requestedRole==role)
+        {
+          foundRequestedRole = true;
+        }
+      });
+      return foundRequestedRole;
+    }
+    return false;
   },
 /**
  * Function to be used as Authentication Validation Log
@@ -66,17 +69,36 @@ const Service = {
  */
   logAccess(user)
   {
+    let userId = "";
+    let userLogin = "";
+    let userEmail = "";
+    let clientId = "";
+    let resourceAccess = "";
+
+    if(user.jwt)
+    {
+      userId = user.jwt.sub;
+      userLogin = user.jwt.preferred_username;
+      userName = user.jwt.name;
+      userEmail = user.jwt.email;;
+      clientId = user.jwt.azp;;
+      resourceAccess = user.jwt.resource_access;;
+    }
+
+
     console.log("--- User validation ---");
     console.log("{");
-    console.log(" User id: " + user.id);
-    console.log(" Access name: " + user.accessName);
-    console.log(" Access type: " + user.accessType);
-    console.log(" Expiration: " + user.expirationDate);
+    console.log(" User id: " + user.jwt.sub);
+    console.log(" User login: " + user.jwt.preferred_username);
+    console.log(" User name: " + user.jwt.name);
+    console.log(" User email: " + user.jwt.email);
+    console.log(" Client Id: " + user.jwt.azp);
     console.log(" Expiration Issued At: " + user.issuedAtDate);
-    console.log(" Actions: " + user.accessAction);
+    console.log(" Expiration Date: " + user.expirationDate);
+    console.log(" Resource Access Roles: " + JSON.stringify(user.jwt.resource_access));
     console.log(" Authenticated: " + user.authenticated);
     console.log(" Error message: " + user.error);
-    console.log(" Requested Resource: " + user.requestedResource);
+    console.log(" Requested Resource Role: " + user.requestedResourceRole);
     console.log("}");
 
   }

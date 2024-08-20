@@ -2,41 +2,66 @@
 
 import { Utils } from '../utils';
 
-export async function index (ctx, next) {
 
-  
-  let token = Utils.getAuthorizationTokenFromHeaders(ctx.request.headers);
-
-  const jwt = require('jsonwebtoken');
-  
-  
-
-  let tokenValid = false;
-
-  if(token)
+export async function index (ctx, next) 
+{
+  if(canPassThrough(ctx)==false)
   {
-    await jwt.verify(token, ctx.config.jwtPublicKey, { algorithm: 'RS256'}, function(err, decoded) 
-    { 
-      if (err) 
-      {
-        console.log(err);              
-        tokenValid = false;
-      }
-      else
-      {
-        tokenValid = true;
-        console.log(decoded);                            
-      }
-      
+    let token = Utils.getAuthorizationTokenFromHeaders(ctx.request.headers);
+
+    const jwt = require('jsonwebtoken');
+  
+    // const tokenData = jwt.decode(token);
+  
+    var fs = require('fs');
+  
+    //var cert = fs.readFileSync('/dados/workspace-terrabrasilis/JWT_PUBLIC_SECRET');
+    var cert = ctx.config.jwtPublicKey;
+  
+    let tokenValid = false;
+    let errorMsg = "";
+    let jwtPayload = null;
+  
+    await jwt.verify(token, cert, { algorithms: ['RS256'] }, function(err, decoded) {
+            if (err) 
+            {
+              errorMsg=err;
+              tokenValid = false;
+            }
+            else
+            {
+              jwtPayload = decoded;
+              tokenValid = true;
+            }
     });
-  }  
-
-  if(tokenValid==false)
-  {
-    ctx.status = 401
-    ctx.body = { msg: "Invalid token" };
-    return
-  }    
+  
+    if(tokenValid==false)
+    {
+      ctx.status = 401
+      ctx.body = { msg: "Invalid token", error: errorMsg };
+      return
+    }
+    else
+    {
+      ctx.state.user = jwtPayload;
+    }
+  } 
+  
   
   await next()
 }
+
+export function canPassThrough(ctx) 
+{
+  let filterPassThrough = ctx.config.filterPassThrough;  
+
+  for (let i = 0; i < filterPassThrough.length; i++) {
+    if(ctx.url.includes(filterPassThrough[i])==true)
+    {
+        return true
+    }       
+  }
+
+  return false;  
+}
+

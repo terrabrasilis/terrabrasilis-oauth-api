@@ -1,5 +1,4 @@
 var Authentication = {
-  oauthBaseURL: "",
   oauthAppURL: "",
   oauthBasePATH: "/security/",
   oauthApiURL: "",
@@ -14,8 +13,8 @@ var Authentication = {
   keycloakClientId: "terrabrasilis-apps",
   
   tokenKey: "terrabrasilis.dpi.inpe.br",
-  service: "terrabrasilis",
-  scope: "portal:dash:admin",
+  resourceRole: "terrabrasilis-user",
+  scope: "openid",
   expiredKey: "expired_token",
   usedInfoKey: "user_info",
   usedDataKey: "user",
@@ -29,7 +28,6 @@ var Authentication = {
   init(language, loginStatusChanged, serverURL)
   {
     this.keycloakBaseURL = $(location).attr('origin') + this.keycloakBasePATH;
-    //this.oauthApiURL = this.oauthBaseURL + this.oauthApiPATH;
     //this.oauthAppURL = $(location).attr('origin') + '/app' + this.oauthBasePATH; // Antigo oauth app para trocar a senha
 
     if(serverURL) this.serverURL=serverURL;
@@ -242,7 +240,7 @@ var Authentication = {
   },
   validateToken(userToken)
   {
-    $.ajax(this.internalValidationOauthApiURL + "validate/" + this.service, {
+    $.ajax(this.internalValidationOauthApiURL + "validate/" + this.resourceRole, {
       type: "GET",
       dataType: 'json',
       headers: {
@@ -284,7 +282,7 @@ var Authentication = {
 
     let loginData = new URLSearchParams();
     loginData.append("client_id", this.keycloakClientId);
-    loginData.append("scope", "openid");
+    loginData.append("scope", this.scope);
     loginData.append("grant_type", "password");
     loginData.append("username", user);
     loginData.append("password", pass);
