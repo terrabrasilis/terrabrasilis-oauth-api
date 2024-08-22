@@ -7,11 +7,12 @@ var Authentication = {
   keycloakBaseURL: "",
   keycloakBasePATH: "/app/security/",
   keycloakApiURL: "",
+  keycloakClientId: "terrabrasilis-apps",
   keycloakRealmPath: "realms/terrabrasilis-realm/",
   keycloakTokenPath: "protocol/openid-connect/token",
   keycloakUserInfoPath:"protocol/openid-connect/userinfo",
-  keycloakClientId: "terrabrasilis-apps",
-  
+  keycloakChangePasswordPath:"protocol/openid-connect/auth?client_id={client_id}&response_type=code&scope=openid&kc_action=UPDATE_PASSWORD&redirect_uri={redirect_uri}",
+  keycloakResetPasswordPath:"protocol/openid-connect/auth?client_id={client_id}&response_type=code&scope=openid&kc_action=LOGIN&redirect_uri={redirect_uri}",
   tokenKey: "terrabrasilis.dpi.inpe.br",
   resourceRole: "terrabrasilis-user",
   scope: "openid",
@@ -416,6 +417,14 @@ var Authentication = {
   /**
    * Functions attach the login navigation item to a default toolbar (Also checks if the user is logged in and build the login dropdown menu)
    */
+
+  completeKeyCloakPath(url)
+  {
+    url=url.replace("{client_id}", this.keycloakClientId);
+    url=url.replace("{redirect_uri}", $(location));
+    return url;
+  },
+
   buildLoginDropdownMenu() {
 
     //Verifiy if login LI already exists
@@ -457,6 +466,10 @@ var Authentication = {
     let imagetag = '<img id="login"  style="width:28px; height:28px; border-radius:50%" alt="Login" src="'+userImageUrl+'" title="'+AuthenticationTranslation.getTranslated('autheticate-title')+'">';
     a.append('<i class="material-icons iconmobile">assignment </i><span id="maps-sup">'+imagetag+'</span>');
     a.appendTo(li);
+
+
+  let keycloakChangePasswordURL=this.completeKeyCloakPath(this.keycloakBaseURL + this.keycloakRealmPath + this.keycloakChangePasswordPath);
+  let keycloakResetPasswordURL=this.completeKeyCloakPath(this.keycloakBaseURL + this.keycloakRealmPath + this.keycloakResetPasswordPath);
   
 
     let dropDownDiv = $('<div/>',
@@ -482,7 +495,7 @@ var Authentication = {
           class: 'dropdown-auth-item',
           html: '<span >'+AuthenticationTranslation.getTranslated('change-pass')+'</span>'
         });
-      a.attr("href", this.oauthAppURL);
+      a.attr("href", keycloakChangePasswordURL);
       a.appendTo(dropDownDiv);
 
       a = $('<a/>',
@@ -512,13 +525,13 @@ var Authentication = {
         });
       a.attr("href", "javascript:Authentication.showAuthenticationModal();");
       a.appendTo(dropDownDiv);
-      // a = $('<a/>',
-      //   {
-      //     class: 'dropdown-auth-item',
-      //     html: '<span >'+AuthenticationTranslation.getTranslated('reset-pass')+'</span>'
-      //   });
-      // a.attr("href", this.oauthBaseURL);
-      // a.appendTo(dropDownDiv);
+       a = $('<a/>',
+         {
+           class: 'dropdown-auth-item',
+           html: '<span >'+AuthenticationTranslation.getTranslated('reset-pass')+'</span>'
+         });
+       a.attr("href", keycloakResetPasswordURL);
+       a.appendTo(dropDownDiv);
     }
     //Appending to navigation menu default UL
 
