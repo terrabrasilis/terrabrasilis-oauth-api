@@ -34,14 +34,15 @@ var Authentication = {
     if(serverURL) this.serverURL=serverURL;
     else this.serverURL=this.internalValidationOauthApiURL;
     this.loginStatusChangedCallback=loginStatusChanged;
-    AuthenticationTranslation.init(language);
-    this.buildLoginDropdownMenu();
+    AuthenticationTranslation.init(language);    
     this.addLoginCss();
     this.equalizeStorageAndCookieToken();
     if(this.hasToken())
     {
-      this.validateToken(this.getToken());        
+      this.validateToken(this.getToken());   
+           
     }
+    this.buildLoginDropdownMenu();
   },
   initCustom(language, loginStatusChanged, customUl2append)
   {
@@ -251,10 +252,11 @@ var Authentication = {
     }).done(function (data) {
       console.log("User authentication token is valid");
       Authentication.validationData = data;
+      Authentication.loadUserInfo(userToken);
+      Authentication.loginStatusChanged();
       Authentication.configureExpirationGuard();
-      Authentication.showAuhenticationDiv(false);
-      Authentication.buildLoginDropdownMenu();
-      Authentication.removeExpiredToken();      
+      //Authentication.showAuhenticationDiv(false);
+      //Authentication.removeExpiredToken();      
     }).fail(function (xhr, status, error) 
     {
       Authentication.handleError(AuthenticationTranslation.getTranslated('tokenValidationFailed'));            
@@ -300,10 +302,7 @@ var Authentication = {
       //Authentication.loadAppToken(data.access_token);
       var myToken = data.access_token;
       Authentication.setToken(myToken);
-      Authentication.loadUserInfo(myToken);
-      Authentication.validateToken(myToken);
-      Authentication.loginStatusChanged();
-      
+      Authentication.validateToken(myToken);      
     }).fail(function (xhr, status, error) {
       console.log("Could not reach the API to authenticate the user: " + error);
       Authentication.handleError(AuthenticationTranslation.getTranslated('authenticationFailed'));
@@ -320,9 +319,9 @@ var Authentication = {
     }).done(function (data) {
       Authentication.setUserInfo(JSON.stringify(data));
       //$('#authentication-div').modal('hide');
-      //Authentication.showAuhenticationDiv(false);
-      //Authentication.buildLoginDropdownMenu();
-      //Authentication.removeExpiredToken();
+      Authentication.showAuhenticationDiv(false);
+      Authentication.buildLoginDropdownMenu();
+      Authentication.removeExpiredToken();
     }).fail(function (xhr, status, error) {
       console.log("Could not reach the API to obtain the user info: " + error);
       Authentication.logout();
@@ -421,7 +420,7 @@ var Authentication = {
   completeKeyCloakPath(url)
   {
     url=url.replace("{client_id}", this.keycloakClientId);
-    url=url.replace("{redirect_uri}", $(location));
+    url=url.replace("{redirect_uri}", location.href);
     return url;
   },
 
@@ -496,15 +495,16 @@ var Authentication = {
           html: '<span >'+AuthenticationTranslation.getTranslated('change-pass')+'</span>'
         });
       a.attr("href", keycloakChangePasswordURL);
+      a.attr("target", "_blank");
       a.appendTo(dropDownDiv);
 
-      a = $('<a/>',
-        {
-          class: 'dropdown-auth-item',
-          html: '<span >'+AuthenticationTranslation.getTranslated('drop-user')+'</span>'
-        });
-      a.attr("href", "javascript:Authentication.dropUser();");
-      a.appendTo(dropDownDiv);
+      // a = $('<a/>',
+      //   {
+      //     class: 'dropdown-auth-item',
+      //     html: '<span >'+AuthenticationTranslation.getTranslated('drop-user')+'</span>'
+      //   });
+      // a.attr("href", "javascript:Authentication.dropUser();");
+      // a.appendTo(dropDownDiv);
 
       a = $('<a/>',
         {
@@ -531,6 +531,7 @@ var Authentication = {
            html: '<span >'+AuthenticationTranslation.getTranslated('reset-pass')+'</span>'
          });
        a.attr("href", keycloakResetPasswordURL);
+       a.attr("target", "_blank");
        a.appendTo(dropDownDiv);
     }
     //Appending to navigation menu default UL
