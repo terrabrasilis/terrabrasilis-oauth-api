@@ -10,7 +10,8 @@ const config = {
   logType: process.env.LOGTYPE || 'dev',
   oauthConfigFile: process.env.OAUTH_CONFIG_FILE,
   proxyConfigFile: process.env.PROXY_CONFIG_FILE,
-  filterPassThrough: ["/assets", "/getoauthjs", "/health"],
+  getCapabilitiesConfigFile: process.env.GET_CAPABILITIES_CONFIG_FILE,
+  filterPassThrough: ["/assets", "/getoauthjs", "/health", "/getcapabilities"],
   debug: false
 }
 
