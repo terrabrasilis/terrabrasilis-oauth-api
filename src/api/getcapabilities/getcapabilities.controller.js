@@ -14,13 +14,19 @@ export async function index (ctx, next)
     next();
   }
   else
-  {    url = ctx.querystring.replace("url=", "");
+  { 
+
+    url = ctx.querystring.replace("url=", "");
+
+    url = unEscape(url);
 
     if(url.includes("?")==false)
     {
       url=url.replace(/&/, '?');
     }
     url=replaceLocalhost(url);
+
+    
 
     var GetCapabilitiesConfig = require('./getcapabilities.config');
     let config = GetCapabilitiesConfig.getConfiguration(ctx);
@@ -169,4 +175,15 @@ function replaceLocalhost(url)
     return url.replace("http://localhost", "https://terrabrasilis.dpi.inpe.br");
   }
   return url;
+}
+function unEscape(url)
+{
+  let unescaped_url = decodeURIComponent(url)
+  if (unescaped_url.length < url.length)
+  {
+    return unescaped_url;
+  }
+  else{
+    return url;
+  }      
 }
