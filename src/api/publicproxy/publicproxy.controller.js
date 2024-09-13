@@ -28,8 +28,8 @@ export async function index (ctx, next)
 
     
 
-    var GetCapabilitiesConfig = require('./getcapabilities.config');
-    let config = GetCapabilitiesConfig.getConfiguration(ctx);
+    var PublicProxyConfig = require('./publicproxy.config');
+    let config = PublicProxyConfig.getConfiguration(ctx);
     
     let requestOk = false;
     let responseOk = false;
@@ -70,14 +70,14 @@ export async function index (ctx, next)
 }
 function logRequest(url, requestOk, responseOk, contentType)
 {
-  console.log("GetCapabilities request to: " + url + " - Request Allowed: " + requestOk +  " - Response Allowed: " + responseOk + " - Response ContentType: " + contentType);
+  console.log("Public proxy request to: " + url + " - Request Allowed: " + requestOk +  " - Response Allowed: " + responseOk + " - Response ContentType: " + contentType);
 }
 function checkRequest(ctx, url, config)
 {
 
-  for (let i = 0; i < config.getcapabilities.allowed_querystring_token_whitelist.length; i++) 
+  for (let i = 0; i < config.publicproxy.allowed_querystring_token_whitelist.length; i++) 
   {
-    const token = config.getcapabilities.allowed_querystring_token_whitelist[i];
+    const token = config.publicproxy.allowed_querystring_token_whitelist[i];
 
     if(url.toLowerCase().includes(token.toLowerCase()))
     {
@@ -93,9 +93,9 @@ function checkRequest(ctx, url, config)
 }
 function checkResponse(ctx, response, config)
 {
-  for (let i = 0; i < config.getcapabilities.allowed_response_types.length; i++) 
+  for (let i = 0; i < config.publicproxy.allowed_response_types.length; i++) 
   {
-    const contentType = config.getcapabilities.allowed_response_types[i];
+    const contentType = config.publicproxy.allowed_response_types[i];
     if(response.contentType && response.contentType.toLowerCase().includes(contentType.toLowerCase()))
     {
       return true;

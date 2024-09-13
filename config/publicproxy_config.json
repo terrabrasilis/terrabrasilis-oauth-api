@@ -1,0 +1,8 @@
+{
+	"publicproxy":
+		{
+			"allowed_querystring_token_whitelist": ["getcapabilities", "getfeatureinfo"],
+			"allowed_response_types": ["application/xml", "text/xml", "application/json"]
+		}	
+}
+

@@ -6,20 +6,15 @@
 			"password":"geoserver"
 		},
 		{
-			"host": "terrabrasilis.dpi.inpe.br",
-			"user": "teste1",
-			"password":"teste2"
+			"host": "https://terrabrasilis.dpi.inpe.br/geoserver/",
+			"user": "admin",
+			"password":"geoserver"
 		}
 		,
 		{
 			"host": "http://localhost/geoserver/",
 			"user": "admin",
 			"password":"geoserver"
-		},
-		{
-			"host": "pmsv-hom.funcate.org.br",
-			"user": "teste1",
-			"password":"teste2"
 		}
 	]	
 }
