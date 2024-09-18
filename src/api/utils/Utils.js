@@ -23,7 +23,7 @@ const Utils = {
   getAuthorizationTokenFromHeaders(headers)
   {
     let authorization = headers.authorization;
-    if(authorization.includes(" "))
+    if(authorization && authorization.includes(" "))
     {
       let token = authorization.split(" ")[1];
       return token;

@@ -3,7 +3,7 @@ var Authentication = {
   oauthBasePATH: "/security/",
   oauthApiURL: "",
   oauthApiPATH: "/",
-
+  oauthProxyURL: "/oauth-api/proxy?client_id={client_id}&role={role}&url={url}",  
   keycloakBaseURL: "",
   keycloakBasePATH: "/app/security/",
   keycloakApiURL: "",
@@ -13,8 +13,8 @@ var Authentication = {
   keycloakUserInfoPath:"protocol/openid-connect/userinfo",
   keycloakChangePasswordPath:"protocol/openid-connect/auth?client_id={client_id}&response_type=code&scope=openid&kc_action=UPDATE_PASSWORD&redirect_uri={redirect_uri}",
   keycloakResetPasswordPath:"protocol/openid-connect/auth?client_id={client_id}&response_type=code&scope=openid&kc_action=LOGIN&redirect_uri={redirect_uri}",
-  tokenKey: "terrabrasilis.dpi.inpe.br",
-  resourceRole: "terrabrasilis-user",
+  keycloakResourceRole: "terrabrasilis-user",
+  tokenKey: "terrabrasilis.dpi.inpe.br",  
   scope: "openid",
   expiredKey: "expired_token",
   usedInfoKey: "user_info",
@@ -26,8 +26,16 @@ var Authentication = {
   validationInterval: 300000,
   ul2append: "#navigationBarUL",
 
-  init(language, loginStatusChanged, serverURL)
+  init(language, loginStatusChanged, serverURL, clientId=null, resourceRole=null)
   {
+    if(resourceRole)
+    {
+      this.keycloakResourceRole = resourceRole;
+    }
+    if(clientId)
+    {
+      this.keycloakClientId=clientId;
+    }
     this.keycloakBaseURL = $(location).attr('origin') + this.keycloakBasePATH;
     //this.oauthAppURL = $(location).attr('origin') + '/app' + this.oauthBasePATH; // Antigo oauth app para trocar a senha
 
@@ -242,7 +250,7 @@ var Authentication = {
   },
   validateToken(userToken)
   {
-    $.ajax(this.internalValidationOauthApiURL + "validate/" + this.resourceRole, {
+    $.ajax(this.internalValidationOauthApiURL + "validate/" +this.keycloakClientId + "/" + this.keycloakResourceRole, {
       type: "GET",
       dataType: 'json',
       headers: {
@@ -659,7 +667,16 @@ var Authentication = {
     }
     return false;
     
-  }
+  },
+  getOAuthProxyUrl(url, client_id, role)
+  {
+    let host = document.location.protocol+'//'+document.location.hostname;
+    let proxyURL = host + this.oauthProxyURL;
+    proxyURL=proxyURL.replace('{url}',url);
+    proxyURL=proxyURL.replace('{client_id}',client_id);
+    proxyURL=proxyURL.replace('{role}',role);
+    return proxyURL;
+  },
 }
 
 
@@ -833,5 +850,14 @@ var AuthenticationService = {
       token = Authentication.getToken();
     }
     return token;
+  },
+  getOAuthResouceRole()
+  {
+    return Authentication.keycloakResourceRole;
+  },
+  getOAuthClientId()
+  {
+    return Authentication.keycloakClientId;
   }
+
 }

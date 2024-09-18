@@ -2,7 +2,6 @@ import { get } from 'lodash'
 import path from 'path'
 
 import moment from 'moment'
-import OAuthConfig from '../utils/oauth.config'
 import Service from './validate.service'
 
 moment.locale('pt-BR')
@@ -12,9 +11,8 @@ const Controller = {
 
   index (ctx, next) {
     
-    var resource = get(ctx, 'params.resource');
-
-    var clientId = OAuthConfig.getConfiguration(ctx).clientId;
+    var role = get(ctx, 'params.role');
+    var clientId = get(ctx, 'params.client_id');
     
     if(!clientId)
     {
@@ -24,7 +22,7 @@ const Controller = {
     
     const jwtUser = ctx.state.user;
     
-    var user = Service.validate(jwtUser, clientId, resource);
+    var user = Service.validate(jwtUser, clientId, role);
 
     Service.logAccess(user);
     

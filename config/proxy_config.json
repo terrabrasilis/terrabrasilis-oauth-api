@@ -3,18 +3,24 @@
 		{
 			"host": "https://pve9.dpi.inpe.br/geoserver/",
 			"user": "admin",
-			"password":"geoserver"
+			"password":"geoserver",
+			"allowed_client_id":"terrabrasilis-apps",
+			"allowed_role":"terrabrasilis-user"
 		},
 		{
 			"host": "https://terrabrasilis.dpi.inpe.br/geoserver/",
 			"user": "admin",
-			"password":"geoserver"
+			"password":"geoserver",
+			"allowed_client_id":"terrabrasilis-apps",
+			"allowed_role":"terrabrasilis-user"
 		}
 		,
 		{
 			"host": "http://localhost/geoserver/",
 			"user": "admin",
-			"password":"geoserver"
+			"password":"geoserver",
+			"allowed_client_id":"terrabrasilis-apps",
+			"allowed_role":"terrabrasilis-user"
 		}
 	]	
 }

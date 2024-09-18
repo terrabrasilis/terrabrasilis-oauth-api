@@ -1,69 +1,97 @@
 'use strict'
-import { forEach, get } from 'lodash'
-import ValidateService from '../validate/validate.service'
+import { get } from 'lodash';
+import ValidateService from '../validate/validate.service';
 
 const dotenv = require('dotenv');
 const path = require('path');
 
 export async function index (ctx, next) 
 {  
+  let role = get(ctx.query, 'role');
+  let clientId = get(ctx.query, 'client_id');
 
-  let user = validateUser(ctx);  
-  //user.authenticated = true;  
-
-  if(user && user.authenticated)
+  if(!role || !clientId)
   {
-    let url = get(ctx.query, 'url')
-
-    if(!url)
-    {
-     next();
-    }
-    else
-    {
-      url = ctx.querystring.replace("url=", "");
-
-      if(url.includes("?")==false)
-      {
-        url=url.replace(/&/, '?');
-      }
-      url=replaceLocalhost(url);
-
-      let proxyConfig = getProxyConfig(ctx, url); 
-  
-      if(proxyConfig)
-      {
-        let credentials = null;
-        if(proxyConfig.user && proxyConfig.password)
-        {
-          credentials = Buffer.from(proxyConfig.user + ':' + proxyConfig.password).toString('base64');
-        }   
-  
-        await getData(url, credentials).then((response)=>
-        {
-          ctx.status = 200;
-          var fs = require('fs');
-          //ctx.body= fs.createReadStream('/tmp/test.png');
-          ctx.body = response.data.read();
-          ctx.res.setHeader("Content-Type", response.contentType);
-        }).catch((data)=>
-        {
-          ctx.status = 500;
-          ctx.body = data;      
-        })    
-      }
-      else
-      {
-        next();
-      }  
-    }  
+    ctx.status=401;
+    ctx.body = { error: "Missing resource role or client id."};       
+    next()
   }
   else
   {
-    ctx.status=401;
-    ctx.body = { error: "User not authenticated."};      
-  }
+    let user = validateUser(ctx, clientId, role);  
+    //user.authenticated = true;  
+  
+    if(user && user.authenticated)
+    {
+      if(!ctx.querystring || !ctx.querystring.includes("url="))
+      {
+        ctx.status=401;
+        ctx.body = { error: "Missing url on querystring."};           
+        next();
+      }
+      else
+      {
+        let url = ctx.querystring.split("url=")[1];
+  
+        if(url.includes("?")==false)
+        {
+          url=url.replace(/&/, '?');
+        }
+        url=replaceLocalhost(url);
+  
+        let proxyConfig = getProxyConfig(ctx, url); 
+    
+        if(proxyConfig)
+        {
+          let allowedRole = true;
+          if(proxyConfig.allowed_client_id && proxyConfig.allowed_role)
+          {
+            //Check if has a restricted client_id and role
+            if(proxyConfig.allowed_client_id!=clientId || proxyConfig.allowed_role!=role)
+            {
+              allowedRole = false;
+              ctx.status=401;
+              ctx.body = { error: "URL not authorized for the requested role."};       
+            }
+          }
 
+          if(allowedRole)
+          {
+            let credentials = null;
+            if(proxyConfig.user && proxyConfig.password)
+            {
+              credentials = Buffer.from(proxyConfig.user + ':' + proxyConfig.password).toString('base64');
+            }
+      
+            await getData(url, credentials).then((response)=>
+            {
+              ctx.status = 200;
+              var fs = require('fs');
+              //ctx.body= fs.createReadStream('/tmp/test.png');
+              ctx.body = response.data.read();
+              ctx.res.setHeader("Content-Type", response.contentType);
+            }).catch((data)=>
+            {
+              ctx.status = 500;
+              ctx.body = data;      
+            })  
+          }
+        }
+        else
+        {
+          ctx.status=401;
+          ctx.body = { error: "Requested URL not allowed."};     
+          next();
+        }  
+      }  
+    }
+    else
+    {
+      ctx.status=401;
+      ctx.body = { error: "User not authenticated."};      
+      next();
+    }
+  }
   
 }
 function getProxyConfig(ctx, url)
@@ -179,7 +207,7 @@ async function getData(url, credentials)
     });
 
 }
-function validateUser(ctx)
+function validateUser(ctx, clientId, role)
 {
   var user = null;
 
@@ -187,7 +215,7 @@ function validateUser(ctx)
   {
     const jwtUser = ctx.state.user;
   
-    user = ValidateService.validate(jwtUser, "");  
+    user = ValidateService.validate(jwtUser, clientId, role);  
     
   }
   return user;
