@@ -14,6 +14,7 @@ export default function configKoa (app) {
 
   app.use(compress())
   app.use(cors())
+  
   app.use(parser({
     strict: false
   }))
