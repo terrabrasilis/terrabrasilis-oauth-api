@@ -259,11 +259,21 @@ var Authentication = {
     }).done(function (data) {
       console.log("User authentication token is valid");
       Authentication.validationData = data;
-      Authentication.loadUserInfo(userToken);
-      Authentication.loginStatusChanged();
-      Authentication.configureExpirationGuard();
-      //Authentication.showAuhenticationDiv(false);
-      //Authentication.removeExpiredToken();      
+      if(Authentication.validationData && Authentication.validationData.authenticated==true)
+      {
+        Authentication.loadUserInfo(userToken);
+        Authentication.loginStatusChanged();
+        Authentication.configureExpirationGuard();
+        //Authentication.showAuhenticationDiv(false);
+        //Authentication.removeExpiredToken();    
+      }
+      else
+      {
+        console.log(Authentication.validationData.error)
+        Authentication.handleError(AuthenticationTranslation.getTranslated('missingPermission'));
+        Authentication.logout();
+      }
+        
     }).fail(function (xhr, status, error) 
     {
       Authentication.handleError(AuthenticationTranslation.getTranslated('tokenValidationFailed'));            
@@ -690,6 +700,7 @@ var AuthenticationTranslation = {
     {
       'authenticationFailed':'O nome de usuário ou senha está incorreto. Verifique se CAPS LOCK está ativado. Se você receber essa mensagem novamente, entre em contato com o administrador do sistema para garantir que você tenha permissão para logar no portal.',
       'tokenValidationFailed':'Não foi possível validar a permissão do Usuário a esta aplicação.',      
+      'missingPermission':'O usuário está autenticado, porém não tem permissão para usar esta aplicação.',      
       'submitLogin':"Entrar",
       'submitCancel':"Cancelar",
       'username':"Usuário",
@@ -712,7 +723,8 @@ var AuthenticationTranslation = {
     'en':
     {
       'authenticationFailed':'The username or password is wrong. Verify if CAPS LOCK is enable. If you receive this message again, please contact the system administrator to ensure that you have permission to login in portal.',
-      'tokenValidationFailed':'Unable to validate user permission to this application.',      
+      'tokenValidationFailed':'Unable to validate user permission to this application.',    
+      'missingPermission':'The user is authenticated, but does not have permission to use this application.',          
       'submitLogin':"Login",
       'submitCancel':"Cancel",
       'username':"Username",
