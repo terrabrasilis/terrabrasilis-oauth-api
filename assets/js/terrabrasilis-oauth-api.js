@@ -47,7 +47,7 @@ var Authentication = {
     this.equalizeStorageAndCookieToken();
     if(this.hasToken())
     {
-      this.validateToken(this.getToken());   
+      this.validateToken(this.getToken());
            
     }
     this.buildLoginDropdownMenu();
@@ -60,8 +60,7 @@ var Authentication = {
     }
 
     this.init(language, loginStatusChanged);
-  },
-  
+  },  
   showAuthenticationModal() {
 
     //Verify if authentication modal already exists
@@ -633,7 +632,7 @@ var Authentication = {
     && this.validationData
     && this.validationData.authenticated==true)
     {
-      this.expirationGuardInterval = setInterval(this.expirationCheck,this.validationInterval);
+      this.expirationGuardInterval = setInterval(this.validateTokenExpirationOnServer,this.validationInterval);
     }
     else
     {
@@ -641,32 +640,20 @@ var Authentication = {
     }
     
   },
-  /**
-   * This functions checks if the authentication token is still valid for the current session, if not it forces a logout.
-   * Returns true if expired
-   */
-  expirationCheck()
+  validateTokenExpirationOnServer()
   {
     if(Authentication.hasToken()
     && Authentication.validationData
     && Authentication.validationData.authenticated==true)
     {
-      var now = new Date();
-      var expiration = new Date(Authentication.validationData.expirationDate);
-
-      if(now>expiration)
-      {
-        Authentication.logout();
-        return true;
-      }
+      Authentication.validateToken(Authentication.getToken());
     }
     else
     {
       Authentication.logout();
       return true;
     }
-    return false;
-    
+    return false;    
   },
   getOAuthProxyUrl(url, client_id, role)
   {
