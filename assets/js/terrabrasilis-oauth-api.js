@@ -642,6 +642,10 @@ var Authentication = {
     && this.validationData
     && this.validationData.authenticated==true)
     {
+      if(this.expirationGuardInterval)
+      {
+        clearInterval(this.expirationGuardInterval);
+      }
       this.expirationGuardInterval = setInterval(this.validateTokenExpirationOnServer,this.validationInterval);
     }
     else
@@ -758,15 +762,7 @@ var AuthenticationService = {
 
     var bearer=null;
     if(Authentication.hasToken())
-    {
-      
-      //Check if token is expired or not. If is expired it will logout
-      if(Authentication.expirationCheck())
-      {
-        window.location.reload();
-        return;
-      }
-
+    {      
       bearer = "Bearer " + Authentication.getToken();
     }
 
