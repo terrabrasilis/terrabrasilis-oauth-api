@@ -12,5 +12,6 @@
   "env_production":
   {
     "NODE_ENV": "production"
-  }
+  },
+  "node_args": "--max-http-header-size=16384"
 }

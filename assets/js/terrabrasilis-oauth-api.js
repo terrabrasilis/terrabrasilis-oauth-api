@@ -1,9 +1,21 @@
 var Authentication = {
-  oauthBaseURL: "http://oauth.dpi.inpe.br",
-  oauthApiURL: "http://oauth.dpi.inpe.br/api",
-  tokenKey: "oauth.obt.inpe.br",
-  service: "terrabrasilis",
-  scope: "portal:dash:admin",
+  oauthAppURL: "",
+  oauthBasePATH: "/security/",
+  oauthApiURL: "",
+  oauthApiPATH: "/",
+  oauthProxyURL: "/oauth-api/proxy?client_id={client_id}&role={role}&url={url}",  
+  keycloakBaseURL: "",
+  keycloakBasePATH: "/app/security/",
+  keycloakApiURL: "",
+  keycloakClientId: "terrabrasilis-apps",
+  keycloakRealmPath: "realms/terrabrasilis-realm/",
+  keycloakTokenPath: "protocol/openid-connect/token",
+  keycloakUserInfoPath:"protocol/openid-connect/userinfo",
+  keycloakChangePasswordPath:"protocol/openid-connect/auth?client_id={client_id}&response_type=code&scope=openid&kc_action=UPDATE_PASSWORD&redirect_uri={redirect_uri}",  
+  keycloakResetPasswordPath:"login-actions/reset-credentials?client_id=terrabrasilis-apps&redirect_uri={redirect_uri}",
+  keycloakResourceRole: "terrabrasilis-user",
+  tokenKey: "terrabrasilis.dpi.inpe.br",  
+  scope: "openid",
   expiredKey: "expired_token",
   usedInfoKey: "user_info",
   usedDataKey: "user",
@@ -14,19 +26,31 @@ var Authentication = {
   validationInterval: 300000,
   ul2append: "#navigationBarUL",
 
-  init(language, loginStatusChanged, serverURL)
+  init(language, loginStatusChanged, serverURL, clientId=null, resourceRole=null)
   {
+    if(resourceRole)
+    {
+      this.keycloakResourceRole = resourceRole;
+    }
+    if(clientId)
+    {
+      this.keycloakClientId=clientId;
+    }
+    this.keycloakBaseURL = $(location).attr('origin') + this.keycloakBasePATH;
+    //this.oauthAppURL = $(location).attr('origin') + '/app' + this.oauthBasePATH; // Antigo oauth app para trocar a senha
+
     if(serverURL) this.serverURL=serverURL;
     else this.serverURL=this.internalValidationOauthApiURL;
     this.loginStatusChangedCallback=loginStatusChanged;
-    AuthenticationTranslation.init(language);
-    this.buildLoginDropdownMenu();
+    AuthenticationTranslation.init(language);    
     this.addLoginCss();
     this.equalizeStorageAndCookieToken();
     if(this.hasToken())
     {
-      this.validateToken(this.getToken());        
+      this.validateToken(this.getToken());
+           
     }
+    this.buildLoginDropdownMenu();
   },
   initCustom(language, loginStatusChanged, customUl2append)
   {
@@ -36,8 +60,7 @@ var Authentication = {
     }
 
     this.init(language, loginStatusChanged);
-  },
-  
+  },  
   showAuthenticationModal() {
 
     //Verify if authentication modal already exists
@@ -226,7 +249,7 @@ var Authentication = {
   },
   validateToken(userToken)
   {
-    $.ajax(this.internalValidationOauthApiURL + "validate/" + this.service, {
+    $.ajax(this.internalValidationOauthApiURL + "validate/" +this.keycloakClientId + "/" + this.keycloakResourceRole, {
       type: "GET",
       dataType: 'json',
       headers: {
@@ -236,36 +259,74 @@ var Authentication = {
     }).done(function (data) {
       console.log("User authentication token is valid");
       Authentication.validationData = data;
-      Authentication.configureExpirationGuard();
-    }).fail(function (xhr, status, error) {
+      if(Authentication.validationData && Authentication.validationData.authenticated==true)
+      {
+        Authentication.loadUserInfo(userToken);
+        Authentication.loginStatusChanged();
+        Authentication.configureExpirationGuard();
+        //Authentication.showAuhenticationDiv(false);
+        //Authentication.removeExpiredToken();    
+      }
+      else
+      {
+        console.log(Authentication.validationData.error)
+        Authentication.handleError(AuthenticationTranslation.getTranslated('missingPermission'));
+        Authentication.logout();
+      }
+        
+    }).fail(function (xhr, status, error) 
+    {
+      Authentication.handleError(AuthenticationTranslation.getTranslated('tokenValidationFailed'));            
       console.log("User authentication token is invalid, logging out...");
+      if(xhr.responseJSON)
+      {
+        console.log("Error: " + xhr.responseJSON.error);
+        if(xhr.responseJSON.exception)
+        { 
+          console.log("Exception: " + xhr.responseJSON.exception.name + " - " + xhr.responseJSON.exception.message);
+        }        
+      }
+      
+      
       Authentication.logout();
     });
   },
   handleError(message)
   {
     $('#loginAlert').html(message);
-    $("#loginAlert").fadeTo(2000, 500).slideUp(500, function() {
+    $("#loginAlert").fadeTo(8000, 500).slideUp(500, function() {
       $("#loginAlert").slideUp(500);
     });
   },
   login(user, pass) {
-    $.ajax(this.oauthApiURL + "/oauth/auth/login", {
+
+    let loginData = new URLSearchParams();
+    loginData.append("client_id", this.keycloakClientId);
+    loginData.append("scope", this.scope);
+    loginData.append("grant_type", "password");
+    loginData.append("username", user);
+    loginData.append("password", pass);
+
+    $.ajax(this.keycloakBaseURL + this.keycloakRealmPath + this.keycloakTokenPath, {
       type: "POST",
-      dataType: 'json',
-      data: '{ "username": "' + user + '","password": "' + pass + '" }',
-      contentType: "application/json",
+      processData: false,
+      body: loginData,
+      data: loginData,
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      contentType: 'application/x-www-form-urlencoded; charset=utf-8',
     }).done(function (data) {
       Authentication.setUserData(JSON.stringify(data));
-      Authentication.loadAppToken(data.access_token);
-      
+      //Authentication.loadAppToken(data.access_token);
+      var myToken = data.access_token;
+      Authentication.setToken(myToken);
+      Authentication.validateToken(myToken);      
     }).fail(function (xhr, status, error) {
       console.log("Could not reach the API to authenticate the user: " + error);
       Authentication.handleError(AuthenticationTranslation.getTranslated('authenticationFailed'));
     });
   },
-  loadUserInfo(userId, userToken) {
-    $.ajax(this.oauthApiURL + "/oauth/users/" + userId, {
+  loadUserInfo(userToken) {
+    $.ajax(this.keycloakBaseURL + this.keycloakRealmPath + this.keycloakUserInfoPath, {
       type: "GET",
       dataType: 'json',
       headers: {
@@ -282,35 +343,12 @@ var Authentication = {
       console.log("Could not reach the API to obtain the user info: " + error);
       Authentication.logout();
     });
-  },
-  loadAppToken(userToken) {
-    $.ajax(this.oauthApiURL + "/oauth/auth/token?service=" + this.service + "&scope=" + this.scope, {
-      type: "GET",
-      dataType: 'json',
-      headers: {
-        "Authorization": "Bearer " + userToken
-      },
-      contentType: "application/json",
-    }).done(function (data) {
-      var myToken = data.access_token;
-      Authentication.setToken(myToken);
-      Authentication.loadUserInfo(data.user_id, userToken);
-      Authentication.validateToken(myToken);
-      Authentication.loginStatusChanged();
-
-      return true;
-    }).fail(function (xhr, status, error) {
-      console.log("Could not reach the API to obtain App Token: " + error);
-//      $('#modal-container-warning').modal('show');
-      this.showWarningDiv(true);
-      return false;
-    });
-  },
+  },  
 
   dropUser() {
     if(confirm(AuthenticationTranslation.getTranslated('drop-user-confirm'))) {
       let dataUser=Authentication.getUserData();
-      $.ajax(this.oauthApiURL + "/oauth/users/" + dataUser.user_id, {
+      $.ajax(this.oauthApiURL + "oauth/users/" + dataUser.user_id, {
         type: "DELETE",
         dataType: 'json',
         headers: {
@@ -395,6 +433,14 @@ var Authentication = {
   /**
    * Functions attach the login navigation item to a default toolbar (Also checks if the user is logged in and build the login dropdown menu)
    */
+
+  completeKeyCloakPath(url)
+  {
+    url=url.replace("{client_id}", this.keycloakClientId);
+    url=url.replace("{redirect_uri}", location.href);
+    return url;
+  },
+
   buildLoginDropdownMenu() {
 
     //Verifiy if login LI already exists
@@ -433,9 +479,13 @@ var Authentication = {
     }
 
     //Adding image logged or unlogged
-    let imagetag = '<img id="login"  style="width:28px; height:28px; border-radius:50%" alt="Login" src="'+userImageUrl+'" title="Autentique">';
+    let imagetag = '<img id="login"  style="width:28px; height:28px; border-radius:50%" alt="Login" src="'+userImageUrl+'" title="'+AuthenticationTranslation.getTranslated('autheticate-title')+'">';
     a.append('<i class="material-icons iconmobile">assignment </i><span id="maps-sup">'+imagetag+'</span>');
     a.appendTo(li);
+
+
+  let keycloakChangePasswordURL=this.completeKeyCloakPath(this.keycloakBaseURL + this.keycloakRealmPath + this.keycloakChangePasswordPath);
+  let keycloakResetPasswordURL=this.completeKeyCloakPath(this.keycloakBaseURL + this.keycloakRealmPath + this.keycloakResetPasswordPath);
   
 
     let dropDownDiv = $('<div/>',
@@ -453,7 +503,7 @@ var Authentication = {
       $('<a/>',
         {
           class: 'dropdown-auth-item',
-          html: '<b style="color:#6c757d;">' + info.name + ' / ' + info.institution + '</b>'
+          html: '<b style="color:#6c757d;">' + info.name + ' / ' + info.preferred_username + '</b>'
         }).appendTo(dropDownDiv);
 
       let a = $('<a/>',
@@ -461,16 +511,17 @@ var Authentication = {
           class: 'dropdown-auth-item',
           html: '<span >'+AuthenticationTranslation.getTranslated('change-pass')+'</span>'
         });
-      a.attr("href", this.oauthBaseURL);
+      a.attr("href", keycloakChangePasswordURL);
+      a.attr("target", "_blank");
       a.appendTo(dropDownDiv);
 
-      a = $('<a/>',
-        {
-          class: 'dropdown-auth-item',
-          html: '<span >'+AuthenticationTranslation.getTranslated('drop-user')+'</span>'
-        });
-      a.attr("href", "javascript:Authentication.dropUser();");
-      a.appendTo(dropDownDiv);
+      // a = $('<a/>',
+      //   {
+      //     class: 'dropdown-auth-item',
+      //     html: '<span >'+AuthenticationTranslation.getTranslated('drop-user')+'</span>'
+      //   });
+      // a.attr("href", "javascript:Authentication.dropUser();");
+      // a.appendTo(dropDownDiv);
 
       a = $('<a/>',
         {
@@ -491,13 +542,14 @@ var Authentication = {
         });
       a.attr("href", "javascript:Authentication.showAuthenticationModal();");
       a.appendTo(dropDownDiv);
-      a = $('<a/>',
-        {
-          class: 'dropdown-auth-item',
-          html: '<span >'+AuthenticationTranslation.getTranslated('reset-pass')+'</span>'
-        });
-      a.attr("href", this.oauthBaseURL);
-      a.appendTo(dropDownDiv);
+       a = $('<a/>',
+         {
+           class: 'dropdown-auth-item',
+           html: '<span >'+AuthenticationTranslation.getTranslated('reset-pass')+'</span>'
+         });
+       a.attr("href", keycloakResetPasswordURL);
+       a.attr("target", "_blank");
+       a.appendTo(dropDownDiv);
     }
     //Appending to navigation menu default UL
 
@@ -590,7 +642,11 @@ var Authentication = {
     && this.validationData
     && this.validationData.authenticated==true)
     {
-      this.expirationGuardInterval = setInterval(this.expirationCheck,this.validationInterval);
+      if(this.expirationGuardInterval)
+      {
+        clearInterval(this.expirationGuardInterval);
+      }
+      this.expirationGuardInterval = setInterval(this.validateTokenExpirationOnServer,this.validationInterval);
     }
     else
     {
@@ -598,33 +654,30 @@ var Authentication = {
     }
     
   },
-  /**
-   * This functions checks if the authentication token is still valid for the current session, if not it forces a logout.
-   * Returns true if expired
-   */
-  expirationCheck()
+  validateTokenExpirationOnServer()
   {
     if(Authentication.hasToken()
     && Authentication.validationData
     && Authentication.validationData.authenticated==true)
     {
-      var now = new Date();
-      var expiration = new Date(Authentication.validationData.expirationDate);
-
-      if(now>expiration)
-      {
-        Authentication.logout();
-        return true;
-      }
+      Authentication.validateToken(Authentication.getToken());
     }
     else
     {
       Authentication.logout();
       return true;
     }
-    return false;
-    
-  }
+    return false;    
+  },
+  getOAuthProxyUrl(url, client_id, role)
+  {
+    let host = document.location.protocol+'//'+document.location.hostname;
+    let proxyURL = host + this.oauthProxyURL;
+    proxyURL=proxyURL.replace('{url}',url);
+    proxyURL=proxyURL.replace('{client_id}',client_id);
+    proxyURL=proxyURL.replace('{role}',role);
+    return proxyURL;
+  },
 }
 
 
@@ -650,6 +703,8 @@ var AuthenticationTranslation = {
     'pt-br':
     {
       'authenticationFailed':'O nome de usuário ou senha está incorreto. Verifique se CAPS LOCK está ativado. Se você receber essa mensagem novamente, entre em contato com o administrador do sistema para garantir que você tenha permissão para logar no portal.',
+      'tokenValidationFailed':'Não foi possível validar a permissão do Usuário a esta aplicação.',      
+      'missingPermission':'O usuário está autenticado, porém não tem permissão para usar esta aplicação.',      
       'submitLogin':"Entrar",
       'submitCancel':"Cancelar",
       'username':"Usuário",
@@ -664,13 +719,16 @@ var AuthenticationTranslation = {
       'drop-user-confirm':'A conta será removida permanentemente. Confirma?',
       'missing-user-pass':"Usuário ou senha não foram preenchidos!",
       'username-validation':"Entre com o usuário",
-      'password-validation':"Entre com a senha"
+      'password-validation':"Entre com a senha",
+      'autheticate-title':"Usuário"
 
 
     },
     'en':
     {
       'authenticationFailed':'The username or password is wrong. Verify if CAPS LOCK is enable. If you receive this message again, please contact the system administrator to ensure that you have permission to login in portal.',
+      'tokenValidationFailed':'Unable to validate user permission to this application.',    
+      'missingPermission':'The user is authenticated, but does not have permission to use this application.',          
       'submitLogin':"Login",
       'submitCancel':"Cancel",
       'username':"Username",
@@ -685,7 +743,8 @@ var AuthenticationTranslation = {
       'drop-user-confirm':'The account will be permanently removed. Do you confirm?',
       'missing-user-pass':"Missing username or password!",
       'username-validation':"Insert an username",
-      'password-validation':"Insert a password"
+      'password-validation':"Insert a password",
+      'autheticate-title':"User"
     }
   },
   changeLanguage(lang)
@@ -703,15 +762,7 @@ var AuthenticationService = {
 
     var bearer=null;
     if(Authentication.hasToken())
-    {
-      
-      //Check if token is expired or not. If is expired it will logout
-      if(Authentication.expirationCheck())
-      {
-        window.location.reload();
-        return;
-      }
-
+    {      
       bearer = "Bearer " + Authentication.getToken();
     }
 
@@ -794,5 +845,14 @@ var AuthenticationService = {
       token = Authentication.getToken();
     }
     return token;
+  },
+  getOAuthResouceRole()
+  {
+    return Authentication.keycloakResourceRole;
+  },
+  getOAuthClientId()
+  {
+    return Authentication.keycloakClientId;
   }
+
 }

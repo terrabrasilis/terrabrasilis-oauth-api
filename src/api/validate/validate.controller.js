@@ -1,9 +1,9 @@
 import { get } from 'lodash'
-import { constants, Utils } from '../utils'
 import path from 'path'
 
 import moment from 'moment'
 import Service from './validate.service'
+
 moment.locale('pt-BR')
 const extname = path.extname
 
@@ -11,12 +11,18 @@ const Controller = {
 
   index (ctx, next) {
     
-    var resource = get(ctx, 'params.resource');
+    var role = get(ctx, 'params.role');
+    var clientId = get(ctx, 'params.client_id');
+    
+    if(!clientId)
+    {
+      ctx.status=401;
+      ctx.body = { error: "Missing clientId configuration."};   
+    }
     
     const jwtUser = ctx.state.user;
-    var isAuthenticated = false;
     
-    var user = Service.validate(jwtUser, resource);
+    var user = Service.validate(jwtUser, clientId, role);
 
     Service.logAccess(user);
     
@@ -25,12 +31,12 @@ const Controller = {
     ctx.body = JSON.stringify(user);
   
     if(!jwtUser)
-    {
-      ctx.status=203;
-    }
-    
-  } 
-
+    {            
+      ctx.status=401;
+      ctx.body = { error: "Invalid session token.", exception: ctx.state.jwtOriginalError};   
+    }    
+  }
+  
 }
 
 module.exports = Controller
