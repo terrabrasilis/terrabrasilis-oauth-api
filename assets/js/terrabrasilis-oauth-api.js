@@ -194,7 +194,7 @@ var Authentication = {
   },
   showWarningDiv(show)
   {
-    if(show==true)
+    if(show===true)
     {
       var authenticationDiv = $("#modal-container-warning");
       authenticationDiv.css("display","block");
@@ -208,7 +208,7 @@ var Authentication = {
   },
   showAuhenticationDiv(show)
   {
-    if(show==true)
+    if(show===true)
     {
       var authenticationDiv = $("#authentication-div");
       authenticationDiv.css("display","block");
@@ -260,7 +260,7 @@ var Authentication = {
       console.log("User authentication token is valid");
       let statusChanged = !Authentication.validationData && data || data && data.authenticated!=Authentication.validationData.authenticated;
       Authentication.validationData = data;
-      if(Authentication.validationData && Authentication.validationData.authenticated==true)
+      if(Authentication.validationData && Authentication.validationData.authenticated===true)
       {
         Authentication.loadUserInfo(userToken);
         if (statusChanged) Authentication.loginStatusChanged();
@@ -607,9 +607,6 @@ var Authentication = {
   },
   eraseCookie(name) {
     document.cookie = name + '=; path=/';
-
-    let cookie = document.cookie;
-    cookie
   },
   /**
    * This method equalizes storage token status with cookies. This is to be able to add from token to cookie if it already exists on LocalStorage
@@ -639,7 +636,7 @@ var Authentication = {
   {
     if(this.hasToken()
     && this.validationData
-    && this.validationData.authenticated==true)
+    && this.validationData.authenticated===true)
     {
       if(this.expirationGuardInterval)
       {
@@ -657,7 +654,7 @@ var Authentication = {
   {
     if(Authentication.hasToken()
     && Authentication.validationData
-    && Authentication.validationData.authenticated==true)
+    && Authentication.validationData.authenticated===true)
     {
       Authentication.validateToken(Authentication.getToken());
     }
