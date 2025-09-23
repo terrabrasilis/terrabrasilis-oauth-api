@@ -9,9 +9,9 @@ const Controller = {
 
   index (ctx, next) {
 
-    ctx.set('Content-disposition', 'inline; filename=terrabrasilis-oauth-api.js' );
+    ctx.set('Content-disposition', 'inline; filename=terrabrasilis-oauth-api.min.js' );
     ctx.set('Content-Type', 'text/javascript;charset=UTF-8' );
-    const filePath = __dirname+'/../../../assets/js/terrabrasilis-oauth-api.js';
+    const filePath = __dirname+'/../../../assets/js/terrabrasilis-oauth-api.min.js';
     ctx.type = extname(filePath);
    
     var fs = require('fs');

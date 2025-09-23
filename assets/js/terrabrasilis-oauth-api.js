@@ -590,7 +590,7 @@ var Authentication = {
   },
   addLoginCss()
   {
-    $('head').append('<link rel="stylesheet" type="text/css" href="'+Authentication.serverURL+'css/login.css" />');
+    $('head').append('<link rel="stylesheet" type="text/css" href="'+Authentication.serverURL+'css/login.min.css" />');
   },
   setCookie(name, value, days) {
     document.cookie = name + "=" + (value || "") + "; path=/";
