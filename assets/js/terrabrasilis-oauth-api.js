@@ -258,14 +258,13 @@ var Authentication = {
       contentType: "application/json",
     }).done(function (data) {
       console.log("User authentication token is valid");
+      let statusChanged = !Authentication.validationData && data || data && data.authenticated!=Authentication.validationData.authenticated;
       Authentication.validationData = data;
       if(Authentication.validationData && Authentication.validationData.authenticated==true)
       {
         Authentication.loadUserInfo(userToken);
-        Authentication.loginStatusChanged();
+        if (statusChanged) Authentication.loginStatusChanged();
         Authentication.configureExpirationGuard();
-        //Authentication.showAuhenticationDiv(false);
-        //Authentication.removeExpiredToken();    
       }
       else
       {
